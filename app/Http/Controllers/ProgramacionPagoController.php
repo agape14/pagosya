@@ -60,7 +60,7 @@ class ProgramacionPagoController extends Controller
             ->join('propietarios', 'programacion_pagos.id_propietario', '=', 'propietarios.id')
             ->join('programacion_pagos_detalle', 'programacion_pagos.id', '=', 'programacion_pagos_detalle.id_programacion')
             ->join('conceptos', 'programacion_pagos_detalle.id_concepto', '=', 'conceptos.id')
-            ->join('meses', 'conceptos.mes', '=', 'meses.mes')
+            ->leftJoin('meses', 'conceptos.mes', '=', 'meses.mes')
             ->join('estados_pagos', 'estados_pagos.id', '=', 'programacion_pagos.estado_id')
             ->where('programacion_pagos.activo', '=', 1)
             ->where('conceptos.id_tipo_concepto', '=', 1)
@@ -80,7 +80,11 @@ class ProgramacionPagoController extends Controller
                 return $row->departamento;
             })
             ->addColumn('concepto', function($row) {
-                return $row->descripcion_concepto . ' ' . $row->nombremes . ' ' . $row->anio;
+                $anios="";
+                if ($row->anio != 0) {
+                    $anios=$row->anio;
+                }
+                return $row->descripcion_concepto . ' ' . $row->nombremes . ' ' . $anios;
             })
             ->addColumn('total', function($row) {
                 return number_format($row->total, 2);

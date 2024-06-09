@@ -49,12 +49,19 @@ class PanelController extends Controller
 
         // Calcular el porcentaje de propietarios que han pagado y los que deben
         $totalPropietarios = $propietarios->count();
-        $pagados = $pagos->where('estado_id', 3)->count();
+        //$pagados = $pagos->where('estado_id', 3)->count();
+         // Filtrar los pagos donde los detalles tengan el idConcepto y el estado_id sea 3
+        $pagados = $pagos->filter(function ($pago) use ($idConcepto) {
+            return $pago->estado_id == 3 && $pago->detalles->contains('id_concepto', $idConcepto);
+        })->count();
         $deben = $totalPropietarios - $pagados;
 
         // Calcular los porcentajes
-        $porcentajePagados = round(($pagados / $totalPropietarios) * 100, 2);
-        $porcentajeDeben = round(($deben / $totalPropietarios) * 100, 2);
+        //$porcentajePagados = round(($pagados / $totalPropietarios) * 100, 2);
+        //$porcentajeDeben = round(($deben / $totalPropietarios) * 100, 2);
+
+        $porcentajePagados = $totalPropietarios > 0 ? round(($pagados / $totalPropietarios) * 100, 2) : 0;
+        $porcentajeDeben = $totalPropietarios > 0 ? round(($deben / $totalPropietarios) * 100, 2) : 0;
         return response()->json([
             'propietariosPorPiso' => $propietariosPorPiso, 
             'pagos' => $pagos,

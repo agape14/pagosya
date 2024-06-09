@@ -87,7 +87,7 @@
                         </div>
 
                         <div class="modal fade" id="AddGastoModal" tabindex="-1" aria-labelledby="AddGastoModalLabel-1" aria-hidden="true">
-                            <div class="modal-dialog">
+                            <div class="modal-dialog  modal-lg">
                             <div class="modal-content">
                                 <form id="gastoForm"  method="POST" enctype="multipart/form-data">
                                     @csrf
@@ -117,14 +117,21 @@
                                             <label for="txtDescripcion">Descripcion:</label>
                                             <textarea class="form-control" rows="4" id="txtDescripcion" name="txtDescripcion" required></textarea>
                                         </div>
-                                        <div class="profile-blog mb-5 d-none" id="fileInputDiv">
-                                            <h5 class="text-primary d-inline">Imagen Evidencia de Pago</h5><a href="javascript:void()" class="pull-right f-s-16"> </a>
+                                        {{--<div class="profile-blog mb-5 d-none" id="fileInputDiv">
+                                            <h5 class="text-primary d-inline">Cotizacion de Pago</h5><a href="javascript:void()" class="pull-right f-s-16"> </a>
                                             <img id="evidenciaImg" src="" alt="" class="img-fluid mt-4 mb-4 w-100">
+                                        </div>--}}
+
+                                        <div class="profile-blog mb-5 d-none" id="fileInputDiv">
+                                            <h5 class="text-primary d-inline">Cotización de Pago</h5>
+                                            <a href="javascript:void()" class="pull-right f-s-16"> </a>
+                                            <embed id="evidenciaPdf" src="" type="application/pdf" class="embed-responsive-item mt-4 mb-4 w-100" style="height:500px;">
                                         </div>
+                                        
                                         <div class="input-group mb-3"  >
                                             <div class="custom-file">
-                                                <input type="file" class="custom-file-input" name="evidencia" id="evidencia" accept="image/*" required>
-                                                <label class="custom-file-label" for="evidencia" id="lblImagen">Seleccionar imagen</label>
+                                                <input type="file" class="custom-file-input" name="evidencia" id="evidencia" accept=".pdf" required>
+                                                <label class="custom-file-label" for="evidencia" id="lblImagen">Seleccionar Cotizacion</label>
                                             </div>
                                             <div class="invalid-feedback d-block" id="evidenciaError"></div>
                                         </div>
@@ -232,9 +239,10 @@
 
                 if (gastosdata.evidencia_url) {
                     // Actualiza el atributo src del elemento img con la URL de la imagen recibida
-                    $('#evidenciaImg').attr('src', gastosdata.evidencia_url);
+                    //$('#evidenciaImg').attr('src', gastosdata.evidencia_url);
+                    $('#evidenciaPdf').attr('src', gastosdata.evidencia_url);
                 } else {
-                    console.error('No se encontró la evidencia');
+                    console.error('No se encontró el archivo');
                 }
                 $("#evidencia").removeAttr("required");
                 $("#fileInputDiv").removeClass("d-none");
@@ -292,18 +300,20 @@
         $('#cbxConcepto, #txtFecha').change(function() {
 			tblGastos.draw();
 		});
+
         $('#evidencia').on('change', function() {
-			var file = this.files[0];
-			var fileType = file.type;
-			var match = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
-			if(!((fileType == match[0]) || (fileType == match[1]) || (fileType == match[2]) || (fileType == match[3]))) {
-				swal("Error!", 'Seleccione una imagen válida (JPEG/JPG/PNG/GIF).', "error");
-				$('#evidencia').val('');
-            	$('#evidencia').next('.custom-file-label').text('Seleccionar imagen');
-			}else{
-				var fileName = file.name;
+            var file = this.files[0];
+            var fileType = file.type;
+            var match = ['application/pdf'];
+            if(fileType != match[0]) {
+                swal("Error!", 'Seleccione un archivo PDF válido.', "error");
+                $('#evidencia').val(''); // Limpiar el valor del input file
+                $('#evidencia').next('.custom-file-label').text('Seleccionar archivo');
+            } else {
+                var fileName = file.name;
                 $(this).next('.custom-file-label').text(fileName);
-			}
-		});
+            }
+        });
+
 	});
 </script>

@@ -101,7 +101,11 @@ class PagoController extends Controller
                     return $row->departamento;
                 })
                 ->addColumn('concepto', function($row) {
-                    return $row->descripcion_concepto . ' ' . $row->nombremes . ' ' . $row->anio;
+                    $anios="";
+                    if ($row->anio != 0) {
+                        $anios=$row->anio;
+                    }
+                    return $row->descripcion_concepto . ' ' . $row->nombremes . ' ' . $anios;
                 })
                 ->addColumn('total', function($row) {
                     return number_format($row->total, 2);
@@ -387,10 +391,10 @@ class PagoController extends Controller
             $this->recordAudit('Nuevo', 'Pago creado: ' . $pago->id);
             DB::commit();
             
-            return response()->json(['success' => 'Evidencia guardada correctamente.'], 200);
+            return response()->json(['success' => 'Voucher guardada correctamente.'], 200);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Error al guardar la evidencia.'.$e->getMessage()], 500);
+            return response()->json(['error' => 'Error al guardar el voucher.'.$e->getMessage()], 500);
         }
     }
 
@@ -428,10 +432,10 @@ class PagoController extends Controller
 
             DB::commit();
             
-            return response()->json(['success' => 'Se confirmó la Evidencia, correctamente.'], 200);
+            return response()->json(['success' => 'Se confirmó el voucher, correctamente.'], 200);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Error al guardar la evidencia.'.$e->getMessage()], 500);
+            return response()->json(['error' => 'Error al guardar el voucher.'.$e->getMessage()], 500);
         }
     }
     /**

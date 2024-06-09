@@ -122,7 +122,7 @@
 										<input type="hidden" name="id" id="pagoId">
 										<input type="hidden" name="estadoId" id="estadoId">
 										<div class="modal-header">
-										<h4 class="modal-title" id="AddPagoModalLabel-1">Adjuntar Evidencia del Pago</h4>
+										<h4 class="modal-title" id="AddPagoModalLabel-1">Adjuntar Voucher del Pago</h4>
 										<button type="button" class="close" data-dismiss="modal"><span>&times;</span>
 										</button>
 										</div>
@@ -164,7 +164,7 @@
 										<input type="hidden" name="pagoIdEvidencia" id="pagoIdEvidencia">
 										<input type="hidden" name="estadoIdEvidencia" id="estadoIdEvidencia">
 										<div class="modal-header">
-											<h4 class="modal-title" id="ConfirmaEvidenciaModal-1">Confirmar Evidencia del Pago</h4>
+											<h4 class="modal-title" id="ConfirmaEvidenciaModal-1">Confirmar Voucher del Pago</h4>
 											<button type="button" class="close" data-dismiss="modal"><span>&times;</span>
 											</button>
 										</div>
@@ -184,7 +184,7 @@
 														<span id="txtConfEvidenciaTotal" class="pull-right f-s-16"></span>
 													</div>
 													<div class="profile-blog mb-5">
-														<h5 class="text-primary d-inline">Imagen Evidencia de Pago</h5><a href="javascript:void()" class="pull-right f-s-16"> </a>
+														<h5 class="text-primary d-inline">Imagen Voucher de Pago</h5><a href="javascript:void()" class="pull-right f-s-16"> </a>
 														<img id="evidenciaImg" src="" alt="" class="img-fluid mt-4 mb-4 w-100">
 													</div>
 												</div>

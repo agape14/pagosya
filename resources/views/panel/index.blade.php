@@ -151,8 +151,12 @@
 		}
 		
 		function chartCircle(porcentajePagados, porcentajeDeben) {
+			$('#txtPagados').empty();
+		    $('#txtDebe').empty();
+
 			$('#txtPagados').append(porcentajePagados+"%");
 			$('#txtDebe').append(porcentajeDeben+"%");
+
 			var optionsDataCircle = {
 				chart: {
 					type: 'radialBar',

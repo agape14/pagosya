@@ -31,14 +31,14 @@ class ConceptoController extends Controller
         
         // Leer el archivo JSON de meses
         $meses = Mes::all();
-        $anios = Anio::all();
+        $anios = Anio::orderBy('anio', 'asc')->get();
         return view('conceptos.index', compact('conceptos', 'tipos_concepto','meses','anios', 'page_title', 'page_description','action'));
     }
 
     
     public function getConceptos()
     {
-        $conceptos = Concepto::select(['id', 'id_tipo_concepto', 'descripcion_concepto', 'mes', 'anio','activo']);
+        $conceptos = Concepto::select(['id', 'id_tipo_concepto', 'descripcion_concepto', 'mes', 'anio','activo'])->orderBy('id', 'asc')->get();
         return DataTables::of($conceptos)
             ->addColumn('nombre_concepto', function ($row) {
                 return $row->tipoConcepto ? $row->tipoConcepto->tipo_concepto : '';

@@ -186,7 +186,7 @@ class GastoController extends Controller
             }
         }else{
             $request->validate([
-                'evidencia' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'evidencia' => 'required|mimes:pdf|max:2048',
             ]);
             DB::beginTransaction();
             
@@ -195,9 +195,9 @@ class GastoController extends Controller
 
                 // Manejar la carga de la imagen
                 if ($request->hasFile('evidencia')) {
-                    $image = $request->file('evidencia');
-                    $imageName = time() . '.' . $image->getClientOriginalExtension();
-                    $path = $image->storeAs('evidencias', $imageName, 'public');
+                    $file = $request->file('evidencia');
+                    $filename = time() . '.' . $file->getClientOriginalName();
+                    $path = $file->storeAs('evidencias', $filename, 'public');
                 }
 
                 // Crear un nuevo registro en la tabla gastos
