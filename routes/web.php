@@ -28,8 +28,10 @@ use App\Http\Controllers\TipoConceptoController;
 
 
 
-Route::get('/', 'App\Http\Controllers\ChrevadminController@dashboard_1');
-
+//Route::get('/', 'App\Http\Controllers\ChrevadminController@dashboard_1');
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
 /*Route::middleware([
     'auth:sanctum',
@@ -119,9 +121,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ui-typography', 'App\Http\Controllers\ChrevadminController@ui_typography');
     Route::get('/widget-basic', 'App\Http\Controllers\ChrevadminController@widget_basic');
 
-    
-    
-    
+
+
+
     Route::get('/torres', [TorreController::class, 'torres_index'])->name('torres');
     Route::get('/torres/get', [TorreController::class, 'getTorres'])->name('torres_get');
     Route::post('/addtorre', [TorreController::class, 'store'])->name('addtorre');
@@ -159,7 +161,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/programacion/get/{id}', [ProgramacionPagoController::class, 'show'])->name('propietarios_get_id');
     Route::delete('/programacion/delete/{id}', [ProgramacionPagoController::class, 'destroy'])->name('programacion_delete_id');
 
-   
+
     Route::get('/pagos', [PagoController::class, 'pagos_index'])->name('pagos');
     Route::get('/pagos/data', [PagoController::class, 'gettblPagos'])->name('pagos.data');
     Route::get('/pagos/getpogramacion/{id}', [PagoController::class, 'showprogramacion'])->name('pagos_get_id');
@@ -203,7 +205,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/tipoconceptos/delete/{id}', [TorreController::class, 'destroy'])->name('tipoconceptos_delete_id');
     Route::post('/addtipoconcepto', [TorreController::class, 'store'])->name('addtipoconcepto');
     Route::put('/edittipoconcepto/{id}', [TorreController::class, 'update'])->name('tipoconceptos_edit');
-    
+
     Route::resource('propietarios', PropietarioController::class);
     Route::resource('tipos_concepto', TipoConceptoController::class);*/
 });
