@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CodigosPais;
 use App\Models\Propietario;
 use App\Models\SubPropietario;
 use App\Models\TiposSubPropietarios;
@@ -19,18 +20,19 @@ class PropietarioController extends Controller
     {
         $page_title = 'Propietarios';
         $page_description = 'Some description for the page';
-		
+
 		$action = __FUNCTION__;
 
         $propietarios = Propietario::with('torre')->get();
         $torres = Torre::all();
-        $tipos_subprop = TiposSubPropietarios::all(); 
-        return view('propietarios.index', compact('propietarios', 'torres','tipos_subprop', 'page_title', 'page_description','action'));
+        $paises = CodigosPais::all();
+        $tipos_subprop = TiposSubPropietarios::all();
+        return view('propietarios.index', compact('propietarios', 'torres','tipos_subprop', 'page_title', 'page_description','action','paises'));
     }
 
     public function getPropietarios()
     {
-        $idTorre = env('ID_TORRE_SISTEMA', 6); 
+        $idTorre = env('ID_TORRE_SISTEMA', 6);
         // Obtener los IDs de los propietarios que ya tienen subpropietarios
         $idsPropietariosConSubPropietarios = SubPropietario::pluck('sub_propietario_id')->toArray();
 
@@ -90,7 +92,7 @@ class PropietarioController extends Controller
 
     public function getTblSubPropietarios($id)
     {
-        
+
         $propietarioId = $id;
 
         // Obtener los subpropietarios del propietario especificado
@@ -140,9 +142,9 @@ class PropietarioController extends Controller
             'tipo_sub_propietario' => 'required|string|max:50',
         ]);
         $codigonuevo = $request->input('id');
-        
+
         if ($codigonuevo) {
-            
+
 
             $subpropietarioupd = SubPropietario::findOrFail($codigonuevo);
             $subpropietarioupd->tipo_sub_propietario_id = $validatedData['tipo_sub_propietario'];
@@ -161,7 +163,7 @@ class PropietarioController extends Controller
         }else{
             $propietario = Propietario::findOrFail($validatedData['propietario_id']);
             //'nombre', 'apellido', 'correo_electronico', 'telefono', 'departamento', 'id_torre'
-            $nuevoSubPropietario = Propietario::create([ 
+            $nuevoSubPropietario = Propietario::create([
                 'nombre' => $request->input('nombre'),
                 'apellido' => $request->input('apellido'),
                 'correo_electronico' => $request->input('correo_electronico'),
@@ -202,11 +204,14 @@ class PropietarioController extends Controller
 
     public function update(Request $request, $id)
     {
+        $countryCode = CodigosPais::where('id', $request->pais)->first();
         $request->validate([
             'nombre' => 'required|string|max:50',
             'apellido' => 'required|string|max:50',
             'correo_electronico' => 'required|string|email|max:100',
+            'pais' => 'required|integer',
             'telefono' => 'required|string|max:15',
+            'telefono' => ['required', 'digits:' . $countryCode->longitud_telefono],
             'departamento' => 'required|integer',
         ]);
 
@@ -214,6 +219,7 @@ class PropietarioController extends Controller
         $propietario->nombre = $request->nombre;
         $propietario->apellido = $request->apellido;
         $propietario->correo_electronico = $request->correo_electronico;
+        $propietario->id_codigo_pais = $request->pais;
         $propietario->telefono = $request->telefono;
         $propietario->actualizado_por = auth()->id(); // Ajustar según sea necesario
         $propietario->save();
@@ -227,27 +233,27 @@ class PropietarioController extends Controller
         try {
             // Iniciar una transacción
             DB::beginTransaction();
-    
+
             // Encontrar el subpropietario por ID
             $subpropietario = SubPropietario::findOrFail($id);
-    
+
             // Encontrar el propietario relacionado
             $propietario = Propietario::where('id', $subpropietario->sub_propietario_id)->firstOrFail();
-            
+
             // Eliminar el subpropietario
             $subpropietario->delete();
-    
+
             // Eliminar el propietario
             $propietario->delete();
             $this->recordAudit('Eliminado', 'Sub Propietario eliminado: ' . $propietario->id);
             // Confirmar la transacción
             DB::commit();
-    
+
             return response()->json(['success' => 'Sub Propietario y Propietario eliminados correctamente.']);
         } catch (\Exception $e) {
             // Revertir la transacción en caso de error
             DB::rollBack();
-    
+
             return response()->json(['error' => 'Error al eliminar el Sub Propietario y el Propietario. '. $subpropietario->sub_propietario_id, 'message' => $e->getMessage()], 500);
         }
     }

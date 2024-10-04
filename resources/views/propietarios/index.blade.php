@@ -67,17 +67,35 @@
                                         <input type="email" class="form-control" id="correo_electronico" name="correo_electronico">
                                     </div>
                                     <div class="form-group">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="pais">País:</label>
+                                                <select name="pais" id="pais" class="form-control">
+                                                    @foreach ($paises as $pais)
+                                                        <option value="{{ $pais->id }}"  data-longitud="{{ $pais->longitud_telefono }}">
+                                                            {{ $pais->nombre_pais }} ({{ $pais->codigo_telefono }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="telefono">Teléfono:</label>
+                                                <input type="text" class="form-control" id="telefono" name="telefono" maxlength="12" title="Debe contener exactamente 9 dígitos numéricos">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--<div class="form-group">
                                         <label for="telefono">Teléfono:</label>
                                         <input type="text" class="form-control" id="telefono" name="telefono" maxlength="9" pattern="\d{9}" title="Debe contener exactamente 9 dígitos numéricos">
-                                    </div>
-                                    
+                                    </div>-->
+
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-danger light" data-dismiss="modal">Cancelar</button>
                                     <button type="submit" class="btn btn-primary">Guardar</button>
                                 </div>
                             </form>
-                            
+
                         </div>
                         </div>
                     </div>
@@ -149,7 +167,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                     </form>
                                     <!-- Tabla de sub propietarios -->
                                     <div class="table-responsive">
@@ -168,12 +186,12 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    
+
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Modal Ver Sub Propietario-->
                     <div class="modal fade" id="verSubPropModal" tabindex="-1" role="dialog" aria-labelledby="verSubPropModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg" role="document">
@@ -221,12 +239,12 @@
             </div>
         </div>
     </div>
-    
+
 </div>
 @endsection
     <script type="module">
         $(document).ready(function() {
-            
+
             $('#tblPropietarios').DataTable({
                 processing: true,
                 serverSide: true,
@@ -241,7 +259,7 @@
                     { data: 'action', name: 'action', orderable: false, searchable: false },
                 ]
             });
-            
+
             $('#tblPropietarios').on('click', '.editBtn', function() {
                 var id = $(this).data('id');
                 $.get('/propietarios/get/' + id, function(data) {
@@ -267,8 +285,8 @@
                     $('#tblSubPropietarios').DataTable().destroy();
                 }
                 // Obtener datos del propietario y sus sub propietarios
-                
-               
+
+
                 $.get('/propietarios/' + idpropietario + '/sub', function(data) {
                     var propietario = data.propietario;
                     var subPropietarios = data.subPropietarios;
@@ -301,7 +319,7 @@
                     $('#addSubPropModal').modal('show');
                 });
 
-                
+
             });
 
             $('#tblPropietarios').on('click', '.viewsubpropBtn', function() {
@@ -312,8 +330,8 @@
                     $('#tblVerSubPropietarios').DataTable().destroy();
                 }
                 // Obtener datos del propietario y sus sub propietarios
-                
-               
+
+
                 $.get('/propietarios/' + idpropietario + '/sub', function(data) {
                     var propietario = data.propietario;
                     var subPropietarios = data.subPropietarios;
@@ -345,7 +363,7 @@
                     $('#verSubPropModal').modal('show');
                 });
 
-                
+
             });
             // Enviar formulario para agregar sub propietario
             $('#subPropForm').submit(function(e) {
@@ -360,7 +378,7 @@
                             limpiarSubPropietario();
                             swal("Registro Correcto!", response.success, "success")
                             $('#tblSubPropietarios').DataTable().ajax.reload(null, false);
-                            
+
                         } else {
                             swal("Error!", 'Ocurrió un error', "error")
                             console.log('Ocurrió un error');
@@ -378,7 +396,15 @@
                 var formAction = $(this).attr('action');
                 var formMethod = $(this).attr('method');
                 var formData = $(this).serialize();
+                // Obtener la longitud del teléfono según el país seleccionado
+                var longitudTelefono = $('#pais option:selected').data('longitud');
+                var telefono = $('#telefono').val();
 
+                // Validar longitud del teléfono
+                if (telefono.length !== longitudTelefono) {
+                    swal("Error!", "El número de teléfono debe tener "+longitudTelefono+" dígitos.", "error")
+                    return; // Detener el envío si la validación falla
+                }
                 $.ajax({
                     url: formAction,
                     type: formMethod,
@@ -425,7 +451,7 @@
                                 swal("Error!", "Ocurrio un error, contactese con el administrador del sistema.", "error")
                             }
                         });
-                        
+
                     }else{
                         swal("Cancelado!", "Se cancelo la accion", "error")
                     }
@@ -445,7 +471,7 @@
                     $('#default_collapseTwo').collapse('show');
                 });
             });
-            
+
             $('.btnCancelarSubPropietario').on('click', function() {
                 limpiarSubPropietario()
             });
@@ -468,14 +494,14 @@
         });
         document.getElementById('telefono').addEventListener('input', function (e) {
             var telefono = e.target.value;
-            
+
             // Eliminar cualquier carácter que no sea un número
             telefono = telefono.replace(/\D/g, '');
 
             // Limitar a 9 dígitos
-            if (telefono.length > 9) {
+            /*if (telefono.length > 9) {
                 telefono = telefono.slice(0, 9);
-            }
+            }*/
 
             // Asignar el valor formateado de nuevo al campo de entrada
             e.target.value = telefono;
@@ -483,7 +509,7 @@
 
         document.getElementById('subproptelefono').addEventListener('input', function (e) {
             var subproptelefono = e.target.value;
-            
+
             // Eliminar cualquier carácter que no sea un número
             subproptelefono = subproptelefono.replace(/\D/g, '');
 
@@ -496,5 +522,5 @@
             e.target.value = subproptelefono;
         });
 
-        
+
     </script>
