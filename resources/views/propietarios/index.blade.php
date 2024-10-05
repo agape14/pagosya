@@ -149,9 +149,27 @@
                                                             <input type="email" class="form-control" id="subpropcorreo_electronico" name="correo_electronico" required>
                                                         </div>
                                                         <div class="form-group">
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <label for="paissub">País:</label>
+                                                                    <select name="paissub" id="paissub" class="form-control">
+                                                                        @foreach ($paises as $pais)
+                                                                            <option value="{{ $pais->id }}"  data-longitud="{{ $pais->longitud_telefono }}">
+                                                                                {{ $pais->nombre_pais }} ({{ $pais->codigo_telefono }})
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="telefono">Teléfono:</label>
+                                                                    <input type="text" class="form-control" id="subproptelefono" name="telefono" maxlength="12" title="Debe contener exactamente # dígitos numéricos">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        {{-- <div class="form-group">
                                                             <label for="telefono">Teléfono</label>
                                                             <input type="text" class="form-control" id="subproptelefono" name="telefono" maxlength="9" pattern="\d{9}" title="Debe contener exactamente 9 dígitos numéricos" required>
-                                                        </div>
+                                                        </div>--}}
                                                         <div class="form-group">
                                                             <label for="tipo_sub_propietario">Tipo Sub Propietario</label>
                                                             <select class="form-control" name="tipo_sub_propietario" id="tipo_sub_propietario" required>
@@ -368,7 +386,15 @@
             // Enviar formulario para agregar sub propietario
             $('#subPropForm').submit(function(e) {
                 e.preventDefault();
+                // Obtener la longitud del teléfono según el país seleccionado
+                var longitudTelefono = $('#paissub option:selected').data('longitud');
+                var telefono = $('#subproptelefono').val();
 
+                // Validar longitud del teléfono
+                if (telefono.length !== longitudTelefono) {
+                    swal("Error!", "El número de teléfono debe tener "+longitudTelefono+" dígitos.", "error")
+                    return; // Detener el envío si la validación falla
+                }
                 $.ajax({
                     url: '{{ route('sub_propietarios.store') }}',
                     method: 'POST',
@@ -460,12 +486,13 @@
 
             $('#tblSubPropietarios').on('click', '.editBtnSubProp', function() {
                 var id = $(this).data('id');
-                $.get('/propietarios/sub/' + id, function(data) {
+                $.get('/propietarios/sub/' + id, function(data) {console.log('data',data);
                     $('#subpropietario_id').val(id);
                     //$('#propietario_id').val(data.propietario.id);
                     $('#subpropnombre').val(data.propietario.nombre);
                     $('#subpropapellido').val(data.propietario.apellido);
                     $('#subpropcorreo_electronico').val(data.propietario.correo_electronico);
+                    $('#paissub').val(data.propietario.id_codigo_pais).trigger('change');
                     $('#subproptelefono').val(data.propietario.telefono);
                     $('#tipo_sub_propietario').val(data.subPropietarios.tipo_sub_propietario_id).trigger('change');
                     $('#default_collapseTwo').collapse('show');
@@ -483,6 +510,7 @@
                 $('#subpropapellido').val('');
                 $('#subpropcorreo_electronico').val('');
                 $('#subproptelefono').val('');
+                $('#paissub').val('1').trigger('change');
                 $('#tipo_sub_propietario').val('');
                 $('#tipo_sub_propietario').val('').trigger('change');
                 $('#default_collapseTwo').collapse('hide');
@@ -514,9 +542,9 @@
             subproptelefono = subproptelefono.replace(/\D/g, '');
 
             // Limitar a 9 dígitos
-            if (subproptelefono.length > 9) {
+            /*if (subproptelefono.length > 9) {
                 subproptelefono = subproptelefono.slice(0, 9);
-            }
+            }*/
 
             // Asignar el valor formateado de nuevo al campo de entrada
             e.target.value = subproptelefono;

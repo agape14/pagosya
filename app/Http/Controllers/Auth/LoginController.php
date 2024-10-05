@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Anhskohbo\NoCaptcha\NoCaptcha;
 use App\Models\PermisoUsuario;
+use App\Models\Torre;
 
 class LoginController extends Controller
 {
@@ -14,10 +15,11 @@ class LoginController extends Controller
     {
         $page_title = 'Pagina de Login';
         $page_description = 'Alguna descripcion de la pagina';
-		
-		$action = __FUNCTION__;
 
-        return view('page.login', compact('page_title', 'page_description','action'));
+		$action = __FUNCTION__;
+        $idTorre = env('ID_TORRE_SISTEMA', 7);
+        $torre_trabajo = Torre::where('id',$idTorre)->first();
+        return view('page.login', compact('page_title', 'page_description','action','torre_trabajo'));
     }
 
     public function login(Request $request)
@@ -30,7 +32,7 @@ class LoginController extends Controller
             'contrasenia' => 'required|string',
           ]);
         /**
-         * 
+         *
          *   'g-recaptcha-response' => 'required|captcha',
         *], [
         *    'g-recaptcha-response.required' => 'Por favor, completa el reCAPTCHA.',

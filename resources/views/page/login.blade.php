@@ -21,13 +21,17 @@
                                 <img src="{{ asset($logoText) }}" alt="">
                             @else
                                 <img class="logo-compact" src="{{ asset('images/logo-text.png') }}" alt="">
-                            @endif	
+                            @endif
+                        </div>
+                        <!-- Mostrar nombre de torre en la esquina superior derecha -->
+                        <div class="nombre-torre text-primary">
+                            Torre: {{ $torre_trabajo->nombre_torre }}
                         </div>
                         @if ($errors->any())
                             <div>
                                 <ul>
                                     @foreach ($errors->all() as $error)
-                                        
+
                                         <div class="alert alert-danger alert-dismissible fade show">
                                             <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                                             <strong>Error!</strong> {{ $error }}
@@ -40,7 +44,7 @@
                         @endif
                         <form method="POST" action="{{ route('login') }}">
                             @csrf <!-- Agrega el token CSRF para protección contra CSRF -->
-                        
+
                             <div class="form-group">
                                 <label class="mb-1"><strong>Usuario</strong></label>
                                 <input type="text" class="form-control" name="usuario" required>
@@ -64,7 +68,7 @@
                                 <button type="submit" class="btn btn-primary btn-block">Iniciar sesión</button>
                             </div>
                         </form>
-                       
+
                       <div class="new-account mt-3">
                           <p>¿No tienes cuenta? <a class="text-primary" href="{!! url('/page-register'); !!}">Registrar</a></p>
                       </div>

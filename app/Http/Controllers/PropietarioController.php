@@ -132,13 +132,15 @@ class PropietarioController extends Controller
 
     public function storeSubPropietario(Request $request)
     {
-        //dd($request->all());
+        $countryCode = CodigosPais::where('id', $request->paissub)->first();
         $validatedData = $request->validate([
             'propietario_id' => 'required|exists:propietarios,id',
             'nombre' => 'required|string|max:50',
             'apellido' => 'required|string|max:50',
             'correo_electronico' => 'required|string|email|max:100',
+            'paissub' => 'required|integer',
             'telefono' => 'required|string|max:15',
+            'telefono' => ['required', 'digits:' . $countryCode->longitud_telefono],
             'tipo_sub_propietario' => 'required|string|max:50',
         ]);
         $codigonuevo = $request->input('id');
@@ -155,6 +157,7 @@ class PropietarioController extends Controller
             $propietarioupd->nombre = $request->input('nombre');
             $propietarioupd->apellido = $request->input('apellido');
             $propietarioupd->correo_electronico = $request->input('correo_electronico');
+            $propietarioupd->id_codigo_pais = $request->input('paissub');
             $propietarioupd->telefono = $request->input('telefono');
             $propietarioupd->actualizado_por = auth()->id(); // Ajustar según sea necesario
             $propietarioupd->save();
@@ -167,6 +170,7 @@ class PropietarioController extends Controller
                 'nombre' => $request->input('nombre'),
                 'apellido' => $request->input('apellido'),
                 'correo_electronico' => $request->input('correo_electronico'),
+                'id_codigo_pais'=>$request->input('paissub'),
                 'telefono' => $request->input('telefono'),
                 'departamento' => $propietario->departamento,
                 'id_torre' => $propietario->id_torre,

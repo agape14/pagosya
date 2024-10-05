@@ -26850,6 +26850,14 @@ table.dataTable thead .sorting {
     display: inline-block;
     margin-bottom: 15px; }
 
+    .nombre-torre {
+        position: absolute;
+        top: 10px;  /* Puedes ajustar esta distancia */
+        right: 10px;  /* Ajusta según lo necesario */
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;  /* Ajusta el color si es necesario */
+    }
 .pricing_table_content {
   background: #fff;
   text-align: center;
