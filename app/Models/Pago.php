@@ -11,7 +11,7 @@ class Pago extends Model
     protected $table = 'pagos';
     protected $primaryKey = 'id';
     protected $fillable = [
-        'id_propietario','fecha','total','creado_por','actualizado_por','activo','estado_id','id_programacion',
+        'id_propietario','fecha','total','creado_por','actualizado_por','activo','estado_id','id_programacion','cuotas_totales','incobrable',
     ];
     /***** */
 

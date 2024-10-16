@@ -6,6 +6,7 @@ use App\Models\Concepto;
 use App\Models\Pago;
 use App\Models\PagoDetalle;
 use App\Models\Propietario;
+use App\Models\ProgramacionPago;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -23,10 +24,38 @@ class PanelController extends Controller
         $logo = "images/logo.png";
         $logoText = "images/logo-text.png";
         $action = __FUNCTION__;
-        $current_year = now()->year; 
+        $current_year = now()->year;
 
         $conceptos = Concepto::with('nombreMes')->where('id_tipo_concepto','=','1')->where('activo','=','1')->get();
-        return view('panel.index', compact('page_title', 'page_description','action','logo','logoText', 'current_year','conceptos'));
+        $user = auth()->user(); //dd($user);
+        $contdeuda = 0; //$user->deuda; // Suponiendo que tienes un método para calcular la deuda del usuario
+        $query = ProgramacionPago::select(
+            'programacion_pagos.id',
+            'propietarios.departamento',
+            'propietarios.nombre',
+            'propietarios.apellido',
+            'conceptos.descripcion_concepto',
+            'meses.nombremes',
+            'programacion_pagos.total',
+            'programacion_pagos.created_at',
+            'conceptos.anio',
+            'estados_pagos.nombre  as estado',
+            'estados_pagos.id as idestado',
+        )
+        ->join('propietarios', 'programacion_pagos.id_propietario', '=', 'propietarios.id')
+        ->join('programacion_pagos_detalle', 'programacion_pagos.id', '=', 'programacion_pagos_detalle.id_programacion')
+        ->join('conceptos', 'programacion_pagos_detalle.id_concepto', '=', 'conceptos.id')
+        ->leftJoin('meses', 'conceptos.mes', '=', 'meses.mes')
+        ->join('estados_pagos', 'estados_pagos.id', '=', 'programacion_pagos.estado_id')
+        ->where('programacion_pagos.activo', '=', 1)
+        ->where('conceptos.id_tipo_concepto', '=', 1)
+        ->where('conceptos.activo', '=', 1)
+        ->whereIn('estados_pagos.id', [1,2,4,5]);
+        $query->where('propietarios.id',2);
+        // Contar el número de deudas
+        $contdeuda = $query->count();
+        $detdeudas = $query->get();
+        return view('panel.index', compact('page_title', 'page_description','action','logo','logoText', 'current_year','conceptos','contdeuda','detdeudas'));
     }
 
     public function obtenerDatosPorConcepto(Request $request)
@@ -40,7 +69,7 @@ class PanelController extends Controller
         $propietariosPorPiso = $propietarios->groupBy(function ($item) {
             return floor($item->departamento / 100);
         });
-        
+
         $pagos = Pago::whereIn('id_propietario', $propietarios->pluck('id'))
         ->with(['detalles' => function ($query) use ($idConcepto) {
             $query->where('id_concepto', $idConcepto);
@@ -63,7 +92,7 @@ class PanelController extends Controller
         $porcentajePagados = $totalPropietarios > 0 ? round(($pagados / $totalPropietarios) * 100, 2) : 0;
         $porcentajeDeben = $totalPropietarios > 0 ? round(($deben / $totalPropietarios) * 100, 2) : 0;
         return response()->json([
-            'propietariosPorPiso' => $propietariosPorPiso, 
+            'propietariosPorPiso' => $propietariosPorPiso,
             'pagos' => $pagos,
             'porcentajePagados' => $porcentajePagados,
             'porcentajeDeben' => $porcentajeDeben

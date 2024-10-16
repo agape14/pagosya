@@ -7,6 +7,81 @@
 @section('content')
             <!-- row -->
 			<div class="container-fluid">
+                @if (Auth::user()->id_perfil == 1 )
+                 <!-- Mostrar el panel para el propietario con alertas según su deuda -->
+                 <div class="row">
+                    <div class="col-xl-12">
+                        <div class="card">
+                            <div class="card-header border-0 pb-0 d-sm-flex d-block">
+                                <div class="col-sm-12 col-md-12  px-0">
+                                    @if ($contdeuda == 0)
+                                        <div class="alert alert-success" role="alert">
+                                            No tiene deudas pendientes.
+                                        </div>
+                                    @elseif ($contdeuda < 3)
+                                        <div class="alert alert-warning" role="alert">
+                                            Usted tiene más de 2 deudas pendientes.
+                                        </div>
+                                    @else
+                                        <div class="alert alert-danger" role="alert">
+                                            Usted debe el 100% de sus pagos.
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mx-0 align-items-center">
+                                    <div class="col-sm-12 col-md-12  px-0">
+                                        <!-- Listado de deudas -->
+                                        <h4>Detalles de su deuda:</h4>
+                                        <table class="table   table-hover">
+                                            <thead class="table-primary">
+                                              <tr>
+                                                <th scope="col">#</th>
+                                                <th scope="col">Departamento</th>
+                                                <th scope="col">Concepto</th>
+                                                <th scope="col">Total</th>
+                                                <th scope="col">Estado</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                                @php
+                                                    $contador = 1; // Contador inicial
+                                                    $totalGeneral = 0; // Inicializar la suma total
+                                                @endphp
+                                                @foreach ($detdeudas as $detdeuda)
+                                                    <tr>
+                                                        <th scope="row">{{ $contador }}</th>
+                                                        <td>{{ $detdeuda->departamento }}</td>
+                                                        <td>{{ $detdeuda->descripcion_concepto }}</td>
+                                                        <td class="text-right text-primary">{{ $detdeuda->total }}</td>
+                                                        <td>{{ $detdeuda->estado }}</td>
+                                                      </tr>
+                                                    @php
+                                                        $contador++; // Incrementar el contador
+                                                        $totalGeneral += $detdeuda->total; // Sumar al total general
+                                                    @endphp
+                                                @endforeach
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th colspan="3" class="text-right text-primary">Total Deuda:</th>
+                                                    <th class="text-right text-primary"><strong class="text-primary">{{ number_format($totalGeneral, 2)  }}</strong></th>
+                                                    <th></th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+
+                @elseif (Auth::user()->id_perfil == 1 || Auth::user()->id_perfil == 3)
                 <div class="row">
                     <div class="col-xl-12">
                         <div class="input-group search-area d-inline-flex">
@@ -39,14 +114,14 @@
                                     <div class="col-sm-5 col-md-5 px-0">
                                         <div class="panel-chart-deta">
                                             <div class="col px-0">
-                                                <span></span>	
+                                                <span></span>
                                                 <div>
                                                     <p class="mb-1">Pagados <h3 id="txtPagados"></h3></p>
                                                     {{--<h3 class="fs-20 font-w600 text-black">$632,662,662</h3>--}}
                                                 </div>
                                             </div>
                                             <div class="col px-0">
-                                                <span></span>	
+                                                <span></span>
                                                 <div>
                                                     <p class="mb-1">Debe <h3 id="txtDebe"></h3></p>
                                                     {{--<h3 class="fs-20 font-w600 text-black">$21,412,556</h3>--}}
@@ -59,9 +134,10 @@
                         </div>
                     </div>
 				</div>
+                @endif
             </div>
-			
-@endsection			
+
+@endsection
 <script type="module">
 	$(document).ready(function() {
 		setTimeout(function() {
@@ -85,7 +161,7 @@
 
 					$('#pisoContainer').empty();
 					generarHTMLPisos(propietariosPorPiso, pagos);
-					
+
 
 					// Actualiza los datos del gráfico Chartist
 					chartCircle(porcentajePagados, porcentajeDeben);
@@ -105,7 +181,7 @@
 				html += '<a href="javascript:void(0);" class="btn btn-primary btn-lg btn-block">Piso ' + piso + '</a>';
 				html += '</div>';
 				html += '<div class="card-body contacts-list">';
-				
+
 				$.each(propietarios, function(index, propietario){
 					html += '<div class="media mb-2 align-items-center">';
 					html += '<h3 class="fs-20 font-w600 text-black p-2">' + propietario.departamento + '</h3>';
@@ -113,7 +189,7 @@
 					html += '<h6 class="text-black fs-12 mb-0">' + propietario.nombre + '</h6>';
 					html += '<span class="fs-14">' + propietario.correo_electronico + '</span>';
 					html += '</div>';
-					
+
 					// Encontrar el estado del pago
 					var estadoPago = '';
 					var idPropietario = propietario.id;
@@ -132,7 +208,7 @@
 						} else {
 							html += '<a class="btn btn-md btn-outline-danger rounded-0 estado-btn" href="javascript:void(0);" >Debe</a>';
 						}
-						
+
 					} else {
 						html += '<a class="btn btn-md btn-outline-danger rounded-0 estado-btn" href="javascript:void(0);" >Debe</a>';
 					}
@@ -149,7 +225,7 @@
 				$('#pisoContainer').append(html);
 			});
 		}
-		
+
 		function chartCircle(porcentajePagados, porcentajeDeben) {
 			$('#txtPagados').empty();
 		    $('#txtDebe').empty();
@@ -164,7 +240,7 @@
 					height: 320,
 					offsetY: 0,
 					offsetX: 0,
-					
+
 				},
 				plotOptions: {
 					radialBar: {
@@ -175,9 +251,9 @@
 						size: '35%',
 						background: 'transparent',
 					},
-					
-					
-					
+
+
+
 					track: {
 						show: true,
 						background: '#e1e5ff',
@@ -195,7 +271,7 @@
 					chart: {
 					offsetY: 0,
 					offsetX: 0
-				},	
+				},
 					legend: {
 					position: 'bottom',
 					offsetX:0,
@@ -203,18 +279,18 @@
 					}
 				}
 				}],
-				
+
 				fill: {
 				opacity: 1
 				},
-				
+
 				colors:['#6418C3', '#e06666'],
 				series: [porcentajePagados, porcentajeDeben],
 				labels: ['Pagados', 'Debe'],
 				legend: {
-					fontSize: '16px',  
+					fontSize: '16px',
 					show: false,
-				},		 
+				},
 			}
 
 			var chartDataCircle1 = new ApexCharts(document.querySelector('#chartDataCircle'), optionsDataCircle);

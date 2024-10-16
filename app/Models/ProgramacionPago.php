@@ -11,7 +11,7 @@ class ProgramacionPago extends Model
     protected $table = 'programacion_pagos';
     protected $primaryKey = 'id';
     protected $fillable = [
-        'id_propietario','fecha_inicio','fecha_fin','total','creado_por','actualizado_por','estado_id','activo',
+        'id_propietario','fecha_inicio','fecha_fin','total','creado_por','actualizado_por','estado_id','activo','incobrable',
     ];
     public function detalles()
     {

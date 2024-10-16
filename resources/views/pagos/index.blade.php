@@ -9,7 +9,7 @@
 			<li class="breadcrumb-item active"><a href="javascript:void(0)">Registro</a></li>
 		</ol>
 	</div>
-	
+
 	<div class="row">
 		<div class="col-xl-12">
 			<div class="row">
@@ -68,7 +68,7 @@
 												<label class="form-label" for="txtFecha">Fecha</label>
 												<input class="datepicker-default form-control" id="txtFecha" name="txtFecha">
 											</div>
-											
+
 										</div>
 										<div class="col-xl-2 col-xxl-6 col-sm-6 mb-3">
 											<button class="btn btn-primary mt-4" title="Click para buscar" type="button"><i class="fa fa-filter" aria-hidden="true"></i> Buscar</button>
@@ -135,6 +135,36 @@
 												<label for="txtAddPayConcepto">Concepto:</label>
 												<input type="text" class="form-control" id="txtAddPayConcepto" name="txtAddPayConcepto" readonly>
 											</div>
+                                            <div id="accordion-one" class="accordion accordion-primary">
+                                                <div class="accordion__item">
+                                                    <div class="accordion__header collapsed rounded-lg" data-toggle="collapse" data-target="#default_collapseTwo">
+                                                        <span class="accordion__header--text">Pagar en Partes <span id="txtNroCuotasPagadas"></span></span>
+                                                        <span class="accordion__header--indicator"></span>
+                                                    </div>
+                                                    <div id="default_collapseTwo" class="collapse accordion__body" data-parent="#accordion-one">
+                                                        <div class="accordion__body--text">
+                                                            <div class="form-group">
+                                                                <div class="row">
+                                                                    <div class="col-md-6">
+                                                                        <label for="cuotas">Cuotas: </label>
+                                                                            <select name="cuotas" id="cuotas" class="form-control ">
+                                                                                @foreach($cuotas as $cuota)
+                                                                                    <option value="{{ $cuota }}">{{ $cuota }}</option>
+                                                                                @endforeach
+                                                                            </select>
+
+                                                                            <input type="text" class="form-control " id="txtCuotas" name="txtCuotas"  value="" readonly >
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <label for="monto_a_pagar">Monto a pagar:</label>
+                                                                        <input type="text" class="form-control" id="monto_a_pagar" name="monto_a_pagar" >
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 											<div class="form-group">
 												<label for="txtAddPayTotal">Total:</label>
 												<input type="text" class="form-control" id="txtAddPayTotal" name="txtAddPayTotal" readonly>
@@ -151,7 +181,7 @@
 											<button type="submit" class="btn btn-primary">Guardar</button>
 										</div>
 									</form>
-									
+
 								</div>
 								</div>
 							</div>
@@ -195,7 +225,7 @@
 											<button type="submit" class="btn btn-info">Confirmar</button>
 										</div>
 									</form>
-									
+
 								</div>
 								</div>
 							</div>
@@ -266,14 +296,68 @@
 					$('#txtAddPayDepartamento').val(data.pagos[0].departamento);
 					$('#txtAddPayConcepto').val(data.pagos[0].descripcion_concepto+" "+data.pagos[0].nombremes+" "+data.pagos[0].anio.toString());
 					$('#txtAddPayTotal').val(data.pagos[0].total);
+                    $('#txtNroCuotasPagadas').text( "");
 					$('#evidencia').val('');
             		$('#evidencia').next('.custom-file-label').text('Seleccionar imagen');
+
+                    //$('#cuotas').removeClass('d-none');
+                    //$('#txtCuotas').removeClass('d-none');
+
+                    setTimeout(function() {
+                        $('#cuotas').select2('destroy'); // Destruir el select2 para que respete la clase d-none
+                        $('#cuotas').addClass('d-none');
+                        //$('#cuotas').addClass('d-none');
+                        $('#txtCuotas').addClass('d-none');
+                        console.log('aaaaaaaaahh');
+                    }, 5000);
+
 					$('#AddPagoModal').modal('show');
 				});
 			}else{
 				swal("Error!", 'El estado no corresponde, verificar', "error")
 			}
-			
+
+		});
+
+        $('#tblPago').on('click', '.addPagoPartes', function() {
+			var id = $(this).data('id');
+			var idestado = $(this).data('idestado');
+			if(idestado===4){
+				$.get('/pagos/getpagopartes/' + id, function(data) {
+					$('#pagoId').val(data.pagos.id);
+					$('#estadoId').val(data.pagos.idestado);
+					$('#txtAddPayDepartamento').val(data.pagos.departamento);
+					$('#txtAddPayConcepto').val(data.pagos.descripcion_concepto+" "+data.pagos.nombremes+" "+data.pagos.anio.toString());
+					$('#txtAddPayTotal').val(data.pagos.total);
+                    $('#txtNroCuotasPagadas').text( " - Pagado: "+data.pagos.estado_cuota);
+					$('#evidencia').val('');
+            		$('#evidencia').next('.custom-file-label').text('Seleccionar imagen');
+
+                     // Resetear visibilidad de los campos
+                    $('#cuotas').addClass('d-none');
+                    $('#txtCuotas').addClass('d-none');
+
+                    // Mostrar el campo correspondiente y asignar valor
+                    if (data.pagos.cuotas_pagadas === 0) {
+                        // Si no se han pagado cuotas, mostrar el select
+                        $('#cuotas').removeClass('d-none');
+                        $('#cuotas').val(data.pagos.cuota_actual); // Asigna la cuota actual si es necesario
+                    } else if (data.pagos.cuotas_pagadas < data.pagos.cuotas_totales) {
+                        // Si se han pagado algunas cuotas pero no todas, mostrar el input con las cuotas faltantes
+                        $('#txtCuotas').removeClass('d-none');
+                        $('#txtCuotas').val(data.cuotas_faltantes + " cuota(s) faltantes");
+                    } else {
+                        // Si ya se han pagado todas las cuotas, mostrar el input con "Pagado en su totalidad"
+                        $('#txtCuotas').removeClass('d-none');
+                        $('#txtCuotas').val("Pagado en su totalidad");
+                    }
+
+					$('#AddPagoModal').modal('show');
+				});
+			}else{
+				swal("Error!", 'El estado no corresponde, verificar', "error")
+			}
+
 		});
 
 		$('#tblPago').on('click', '.verificaPago', function() {
@@ -297,14 +381,14 @@
 					} else {
 						console.error('No se encontraron pagos');
 					}
-					
+
 					//$('#evidenciaImg').attr('src', data.pagos[0].evidencia_url);
 					$('#ConfirmaEvidenciaModal').modal('show');
 				});
 			}else{
 				swal("Error!", 'El estado no corresponde, verificar', "error")
 			}
-			
+
 		});
 
 		$('#evidencia').on('change', function() {
@@ -336,7 +420,7 @@
 						limpiarFormEvidencia();
 						swal("Registro Correcto!", response.success, "success")
 						$('#tblPago').DataTable().ajax.reload(null, false);
-						
+
 					} else {
 						swal("Error!", 'Ocurrió un error', "error")
 						console.log('Ocurrió un error');
@@ -362,7 +446,7 @@
 						$('#ConfirmaEvidenciaModal').modal('hide');
 						swal("Registro Correcto!", response.success, "success")
 						$('#tblPago').DataTable().ajax.reload(null, false);
-						
+
 					} else {
 						swal("Error!", 'Ocurrió un error', "error")
 						console.log('Ocurrió un error');
@@ -391,7 +475,7 @@
 
 			$('#pdfIframe').attr('src', url);
 			$('#pdfModal').modal('show');
-			
+
 		});
 	});
 </script>

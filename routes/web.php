@@ -165,6 +165,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pagos', [PagoController::class, 'pagos_index'])->name('pagos');
     Route::get('/pagos/data', [PagoController::class, 'gettblPagos'])->name('pagos.data');
     Route::get('/pagos/getpogramacion/{id}', [PagoController::class, 'showprogramacion'])->name('pagos_get_id');
+    Route::get('/pagos/getpagopartes/{id}', [PagoController::class, 'pagoPartes'])->name('pagopartes_get_id');
     Route::get('/pagos/get/{id}', [PagoController::class, 'show'])->name('pagos_get_id');
     Route::post('/guardar-evidencia', [PagoController::class, 'guardarEvidencia'])->name('guardar.evidencia');
     Route::post('/confirmar-evidencia', [PagoController::class, 'confirmarEvidencia'])->name('confirmar.evidencia');

@@ -30,10 +30,10 @@ class PagoController extends Controller
     {
         $page_title = 'Pagos';
         $page_description = 'Some description for the page';
-		
+
 		$action = __FUNCTION__;
 
-        $idTorre = env('ID_TORRE_SISTEMA', 6); 
+        $idTorre = env('ID_TORRE_SISTEMA', 6);
         // Obtener los IDs de los propietarios que ya tienen subpropietarios
         $idsPropietariosConSubPropietarios = SubPropietario::pluck('sub_propietario_id')->toArray();
 
@@ -41,10 +41,14 @@ class PagoController extends Controller
             ->whereNotIn('id', $idsPropietariosConSubPropietarios)
             ->get();
         $estadopagos=EstadoPago::all();
-        //$propietarios = Propietario::with('torre')->get(); 
+        //$propietarios = Propietario::with('torre')->get();
         $conceptos = Concepto::with('nombreMes')->where('id_tipo_concepto','=','1')->where('activo','=','1')->get();
         //dd($conceptos);
-        return view('pagos.index', compact('propietarios', 'conceptos', 'page_title', 'page_description','estadopagos','action'));
+        // Definir las cuotas de 2 a 12
+        $cuotas = range(2, 12);
+        $pagos=[];
+        $cuotas_pagadas=0;
+        return view('pagos.index', compact('propietarios', 'conceptos', 'page_title', 'page_description','estadopagos','action', 'cuotas','pagos','cuotas_pagadas'));
     }
 
     public function gettblPagos(Request $request)
@@ -120,8 +124,12 @@ class PagoController extends Controller
                         return '<span class="badge badge-rounded badge-outline-info">'.$row->estado.'</span>';
                     }else if($row->idestado===3){
                         return '<span class="badge badge-rounded badge-outline-success">'.$row->estado.'</span>';
+                    }else if($row->idestado===4){
+                        return '<span class="badge badge-rounded badge-outline-primary">'.$row->estado.'</span>';
+                    }else if($row->idestado===5){
+                        return '<span class="badge badge-rounded badge-outline-danger">'.$row->estado.'</span>';
                     }
-                    
+
                 })
                 ->addColumn('selectgroup', function($row) {
                     return '<div class="custom-control custom-checkbox">
@@ -140,13 +148,16 @@ class PagoController extends Controller
                     if($row->idestado===3){
                         $btn .= '<a href="javascript:void(0)" data-id="' . $row->pago_id  . '" data-idestado="' . $row->idestado . '" class="btn btn-outline-success shadow btn-sm sharp mr-1 verPdfPago"><i class="fa fa-print fa-2x"></i></a>';
                     }
+                    if($row->idestado===4){
+                        $btn .= '<a href="javascript:void(0)" data-id="' . $row->pago_id . '" data-idestado="' . $row->idestado . '" class="btn btn-outline-primary shadow btn-sm sharp mr-1 addPagoPartes"><i class="fa fa-money fa-2x"></i></a>';
+                    }
                     $btn .= '</div>';
                     return $btn;
                 })
                 ->rawColumns([ 'selectgroup','estado', 'acciones'])
                 ->make(true);
-        } 
-        // Si el estado es 2 o 3, usamos la consulta de Pago 
+        }
+        // Si el estado es 2 o 3, usamos la consulta de Pago
         else if ($estado == 2 || $estado == 3) {
             $query = Pago::select(
                     'pagos.id',
@@ -231,8 +242,8 @@ class PagoController extends Controller
                 })
                 ->rawColumns([ 'selectgroup','estado', 'acciones'])
                 ->make(true);
-        } 
-        // Si el estado no es válido, devolver una respuesta vacía o un mensaje de error 
+        }
+        // Si el estado no es válido, devolver una respuesta vacía o un mensaje de error
         else {
             return response()->json(['message' => 'Estado no válido'], 400);
         }
@@ -299,6 +310,62 @@ class PagoController extends Controller
         return response()->json(['pagos' => $pagos]);
     }
 
+    public function pagoPartes($id)
+    {
+        $query = Pago::select(
+            'pagos.id',
+            'propietarios.departamento',
+            'propietarios.nombre',
+            'propietarios.apellido',
+            'conceptos.descripcion_concepto',
+            'meses.nombremes',
+            'pagos.total',
+            'pagos.created_at',
+            'conceptos.anio',
+            'estados_pagos.nombre as estado',
+            'estados_pagos.id as idestado',
+            'pagos.evidencia',
+            'pagos.cuotas_totales',
+            'pagos_detalle.cuotas_pagadas'
+        )
+        ->join('propietarios', 'pagos.id_propietario', '=', 'propietarios.id')
+        ->join('pagos_detalle', 'pagos.id', '=', 'pagos_detalle.id_pago')
+        ->join('conceptos', 'pagos_detalle.id_concepto', '=', 'conceptos.id')
+        ->join('meses', 'conceptos.mes', '=', 'meses.mes')
+        ->join('estados_pagos', 'estados_pagos.id', '=', 'pagos.estado_id')
+        ->where('pagos.activo', '=', 1)
+        ->where('conceptos.id_tipo_concepto', '=', 1)
+        ->where('conceptos.activo', '=', 1);
+        $query->where('pagos.id', $id);
+        //$sql = $query->toSql();dd($sql);
+        $pago = $query->first(); // Solo se obtiene un registro
+
+        // Verificar que el pago exista antes de continuar
+        if (!$pago) {
+            return response()->json(['error' => 'Pago no encontrado'], 404);
+        }
+
+        // Asignar el estado de la cuota basado en cuotas pagadas vs totales
+        if ($pago->cuotas_pagadas == 0) {
+            $pago->estado_cuota = "Primera cuota";
+        } elseif ($pago->cuotas_pagadas < $pago->cuotas_totales) {
+            $pago->estado_cuota = "Cuota {$pago->cuotas_pagadas} de {$pago->cuotas_totales}";
+        } else {
+            $pago->estado_cuota = "Pagado en su totalidad";
+        }
+
+        // Añadir la URL completa para la evidencia del pago
+        $pago->evidencia_url = $pago->evidencia ? asset('storage/' . $pago->evidencia) : null;
+
+        // Calcular las cuotas faltantes
+        $cuotas_faltantes = $pago->cuotas_totales - $pago->cuotas_pagadas;
+
+        // Devolver la respuesta en formato JSON
+        //return response()->json(['pago' => $pago, 'cuotas_faltantes' => $cuotas_faltantes]);
+        // Devolver la respuesta en formato JSON
+        return response()->json(['pagos' => $pago,'cuotas_faltantes' => $cuotas_faltantes]);
+    }
+
     public function showprogramacion($id)
     {
         $query = ProgramacionPago::select(
@@ -341,10 +408,11 @@ class PagoController extends Controller
     {
         $request->validate([
             'evidencia' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'cuotas' => 'nullable|integer|min:2|max:12',  // Validar número de cuotas
         ]);
 
         DB::beginTransaction();
-        
+
         try {
             // Manejar la carga de la imagen
             if ($request->hasFile('evidencia')) {
@@ -353,44 +421,46 @@ class PagoController extends Controller
                 $path = $image->storeAs('evidencias', $imageName, 'public');
             }
 
-            // Actualizar la tabla programacion_pago y programacion_pago_detalles
-            if ($request->estadoId == 1) {
-                $programacionPago = ProgramacionPago::findOrFail($request->id);
-                $programacionPago->estado_id = 2;
-                $programacionPago->save();
+              // Actualización de estados
+            $programacionPago = ProgramacionPago::findOrFail($request->id);
+            $estadoNuevo = $request->cuotas ? 4 : 2; // 4 es el estado "PAGO EN PARTES"
+            $programacionPago->estado_id = $estadoNuevo;
+            $programacionPago->save();
 
-                ProgramacionPagoDetalle::where('id_programacion', $request->id)
-                    ->update(['estado_id' => 2]);
-            }
+            ProgramacionPagoDetalle::where('id_programacion', $request->id)
+                ->update(['estado_id' => $estadoNuevo]);
 
-            // Crear registro en la tabla pagos
+            // Registro en tabla pagos
             $pago = new Pago();
             $pago->id_propietario = $programacionPago->id_propietario;
             $pago->fecha = now();
             $pago->total = $programacionPago->total;
+            $pago->cuotas_totales = $request->cuotas ?? 1; // Asignar cuotas totales
             $pago->creado_por = auth()->id();
-            //$pago->actualizado_por = auth()->id();
             $pago->evidencia = $path;
-            $pago->estado_id = 2;
+            $pago->estado_id = $estadoNuevo; // "PAGO EN PARTES" o "PAGADO"
             $pago->activo = 1;
             $pago->id_programacion = $programacionPago->id;
             $pago->save();
 
-            // Crear registro en la tabla pago_detalle
+            // Detalles del pago
             $programacionDetalles = ProgramacionPagoDetalle::where('id_programacion', $request->id)->get();
             foreach ($programacionDetalles as $detalle) {
                 $pagoDetalle = new PagoDetalle();
                 $pagoDetalle->id_pago = $pago->id;
                 $pagoDetalle->id_concepto = $detalle->id_concepto;
-                $pagoDetalle->monto = $detalle->monto;
-                $pagoDetalle->estado_id = 2;
+                $pagoDetalle->monto = $programacionPago->total;
+                $pagoDetalle->monto_pagado = $request->monto_a_pagar;
+                $pagoDetalle->cuotas_pagadas = $request->cuotas ? 1 : 0;
+                $pagoDetalle->estado_id = $estadoNuevo;
                 $pagoDetalle->creado_por = auth()->id();
-                //$pagoDetalle->actualizado_por = auth()->id();
                 $pagoDetalle->save();
             }
+
+
             $this->recordAudit('Nuevo', 'Pago creado: ' . $pago->id);
             DB::commit();
-            
+
             return response()->json(['success' => 'Voucher guardada correctamente.'], 200);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -405,7 +475,7 @@ class PagoController extends Controller
         ]);
 
         DB::beginTransaction();
-        
+
         try {
 
             // Actualizar la tabla programacion_pago y programacion_pago_detalles
@@ -426,12 +496,12 @@ class PagoController extends Controller
 
                 ProgramacionPagoDetalle::where('id_programacion', $pago->id_programacion)
                         ->update(['estado_id' => 3,'actualizado_por' => auth()->id()]);
-                
+
                 $this->recordAudit('Editado', 'Pago editado: ' . $pago->id);
             }
 
             DB::commit();
-            
+
             return response()->json(['success' => 'Se confirmó el voucher, correctamente.'], 200);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -471,7 +541,7 @@ class PagoController extends Controller
         $pdf = DomPDF::loadView('pagos.pdf', $data);
         //$pdf = new DomPDF(); $pdf = $pdf->loadView('pagos.pdf', $data);
         //$pdf = DomPDFPDF::loadView('pagos.pdf', $data);
-        
+
         return $pdf->stream('pago_' . $id . '.pdf');
     }
 }
