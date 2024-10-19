@@ -23,15 +23,15 @@ class GastoController extends Controller
     {
         $page_title = 'Gastos';
         $page_description = 'Some description for the page';
-		
+
 		$action = __FUNCTION__;
         //$gastos = Gasto::all();
 
-        $idTorre = env('ID_TORRE_SISTEMA', 6); 
+        $idTorre = env('ID_TORRE_SISTEMA', 6);
         // Obtener los IDs de los propietarios que ya tienen subpropietarios
         $idsPropietariosConSubPropietarios = SubPropietario::pluck('sub_propietario_id')->toArray();
 
-        //$propietarios = Propietario::with('torre')->get(); 
+        //$propietarios = Propietario::with('torre')->get();
         $conceptos = Concepto::with('nombreMes')->where('id_tipo_concepto','=','2')->where('activo','=','1')->get();
 
         return view('gastos.index', compact('conceptos', 'page_title', 'page_description','action'));
@@ -64,9 +64,11 @@ class GastoController extends Controller
         $fecha = Carbon::createFromFormat('d/m/Y', $fecha)->format('Y-m-d');
         $query->whereDate('gastos.fecha', $fecha);
     }
-    
-    $gastos = $query->groupBy('gastos.id')->get();
 
+    $gastos = $query->groupBy('gastos.id')->get();
+    if ($gastos->isEmpty()) {
+        return DataTables::of(collect([]))->make(true);
+    }
     return DataTables::of($gastos)
         ->addColumn('detalle', function($row) {
             // Obtener los detalles de gastos para este gasto
@@ -138,23 +140,23 @@ class GastoController extends Controller
 
     public function store(Request $request)
     {
-        
-        $idTorre = env('ID_TORRE_SISTEMA', 6); 
+
+        $idTorre = env('ID_TORRE_SISTEMA', 6);
         $codigonuevo = $request->input('gastoId');
-        
+
         if ($codigonuevo) {
 
             DB::beginTransaction();
-            
+
             try {
-                
+
                 // Manejar la carga de la imagen
                 if ($request->hasFile('evidencia')) {
                     $image = $request->file('evidencia');
                     $imageName = time() . '.' . $image->getClientOriginalExtension();
                     $path = $image->storeAs('evidencias', $imageName, 'public');
                 }
-                    
+
                 $nuevogasto = Gasto::findOrFail($codigonuevo);
                 $nuevogasto->total = $request->txtMontoAdd;
                 $nuevogasto->actualizado_por = auth()->id();
@@ -178,7 +180,7 @@ class GastoController extends Controller
                 */
                 $this->recordAudit('Editado', 'Gasto editado: ' . $codigonuevo);
                 DB::commit();
-                        
+
                 return response()->json(['success' => 'Gasto actualizado correctamente.'], 200);
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -189,9 +191,9 @@ class GastoController extends Controller
                 'evidencia' => 'required|mimes:pdf|max:2048',
             ]);
             DB::beginTransaction();
-            
+
             try {
-               
+
 
                 // Manejar la carga de la imagen
                 if ($request->hasFile('evidencia')) {
@@ -225,14 +227,14 @@ class GastoController extends Controller
                 //return response()->json(['success' => true, 'message' => 'Gasto guardado exitosamente']);
                 $this->recordAudit('Nuevo', 'Gasto creado: ' . $gasto->id);
                 DB::commit();
-                    
+
                 return response()->json(['success' => 'Gasto guardada correctamente.'], 200);
             } catch (\Exception $e) {
                 DB::rollBack();
                 return response()->json(['error' => 'Error al guardar el Gasto.'.$e->getMessage()], 500);
             }
         }
-        
+
     }
 
     public function show($id)
@@ -290,7 +292,7 @@ class GastoController extends Controller
             return response()->json(['error' => 'No tienes permiso para eliminar este gasto.'], 403);
         }
         */
-        
+
         $gasto = Gasto::findOrFail($id);
         // Registro de auditoría
         $this->recordAudit('Eliminado', 'Gasto eliminado: ' . $gasto->id);

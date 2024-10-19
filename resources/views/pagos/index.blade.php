@@ -147,13 +147,17 @@
                                                                 <div class="row">
                                                                     <div class="col-md-6">
                                                                         <label for="cuotas">Cuotas: </label>
+                                                                        <div class="ver-cuotas-sin-pagar d-none">
                                                                             <select name="cuotas" id="cuotas" class="form-control ">
                                                                                 @foreach($cuotas as $cuota)
                                                                                     <option value="{{ $cuota }}">{{ $cuota }}</option>
                                                                                 @endforeach
                                                                             </select>
-
+                                                                        </div>
+                                                                        <div class="ver-cuotas-pagados d-none">
                                                                             <input type="text" class="form-control " id="txtCuotas" name="txtCuotas"  value="" readonly >
+                                                                            <input type="hidden" id="icuotasfaltantes" name="icuotasfaltantes">
+                                                                        </div>
                                                                     </div>
                                                                     <div class="col-md-6">
                                                                         <label for="monto_a_pagar">Monto a pagar:</label>
@@ -289,6 +293,7 @@
 		$('#tblPago').on('click', '.addPago', function() {
 			var id = $(this).data('id');
 			var idestado = $(this).data('idestado');
+            $('#txtCuotas').val("");
 			if(idestado===1){
 				$.get('/pagos/getpogramacion/' + id, function(data) {
 					$('#pagoId').val(data.pagos[0].id);
@@ -302,15 +307,15 @@
 
                     //$('#cuotas').removeClass('d-none');
                     //$('#txtCuotas').removeClass('d-none');
-
+                    /*
                     setTimeout(function() {
                         $('#cuotas').select2('destroy'); // Destruir el select2 para que respete la clase d-none
                         $('#cuotas').addClass('d-none');
-                        //$('#cuotas').addClass('d-none');
                         $('#txtCuotas').addClass('d-none');
                         console.log('aaaaaaaaahh');
-                    }, 5000);
-
+                    }, 5000);*/
+                    $('.ver-cuotas-sin-pagar').removeClass('d-none'); // Mostrar select
+                    $('.ver-cuotas-pagados').addClass('d-none');      // Ocultar input text
 					$('#AddPagoModal').modal('show');
 				});
 			}else{
@@ -333,22 +338,22 @@
 					$('#evidencia').val('');
             		$('#evidencia').next('.custom-file-label').text('Seleccionar imagen');
 
-                     // Resetear visibilidad de los campos
-                    $('#cuotas').addClass('d-none');
-                    $('#txtCuotas').addClass('d-none');
+                    // Resetear visibilidad de los campos
+                    //$('#cuotas').addClass('d-none');
+                    //$('#txtCuotas').addClass('d-none');
 
-                    // Mostrar el campo correspondiente y asignar valor
                     if (data.pagos.cuotas_pagadas === 0) {
-                        // Si no se han pagado cuotas, mostrar el select
-                        $('#cuotas').removeClass('d-none');
-                        $('#cuotas').val(data.pagos.cuota_actual); // Asigna la cuota actual si es necesario
+                        $('.ver-cuotas-sin-pagar').removeClass('d-none'); // Mostrar select
+                        $('.ver-cuotas-pagados').addClass('d-none');      // Ocultar input text
+                        $('#cuotas').val(data.pagos.cuota_actual);
                     } else if (data.pagos.cuotas_pagadas < data.pagos.cuotas_totales) {
-                        // Si se han pagado algunas cuotas pero no todas, mostrar el input con las cuotas faltantes
-                        $('#txtCuotas').removeClass('d-none');
+                        $('.ver-cuotas-sin-pagar').addClass('d-none');    // Ocultar select
+                        $('.ver-cuotas-pagados').removeClass('d-none');   // Mostrar input text
                         $('#txtCuotas').val(data.cuotas_faltantes + " cuota(s) faltantes");
+                        $('#icuotasfaltantes').val(data.cuotas_faltantes);
                     } else {
-                        // Si ya se han pagado todas las cuotas, mostrar el input con "Pagado en su totalidad"
-                        $('#txtCuotas').removeClass('d-none');
+                        $('.ver-cuotas-sin-pagar').addClass('d-none');    // Ocultar select
+                        $('.ver-cuotas-pagados').removeClass('d-none');   // Mostrar input text
                         $('#txtCuotas').val("Pagado en su totalidad");
                     }
 
