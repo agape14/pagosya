@@ -445,7 +445,13 @@ class PagoController extends Controller
             }else{
                 // Actualización de estados
                 $programacionPago = ProgramacionPago::findOrFail($request->id);
-                $estadoNuevo = $request->cuotas ? 4 : 2; // 4 es el estado "PAGO EN PARTES"
+                if($request->monto_a_pagar){
+                    $estadoNuevo = $request->cuotas ? 4 : 2; // 4 es el estado "PAGO EN PARTES"
+                }else{
+                    $estadoNuevo =2;
+                    $request->monto_a_pagar=$programacionPago->total;
+                }
+
                 $programacionPago->estado_id = $estadoNuevo;
                 $programacionPago->save();
 
