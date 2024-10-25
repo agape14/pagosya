@@ -217,10 +217,27 @@
 														<h4 class="text-primary d-inline">Total:</h4>
 														<span id="txtConfEvidenciaTotal" class="pull-right f-s-16"></span>
 													</div>
-													<div class="profile-blog mb-5">
+													<!--<div class="profile-blog mb-5">
 														<h5 class="text-primary d-inline">Imagen Voucher de Pago</h5><a href="javascript:void()" class="pull-right f-s-16"> </a>
 														<img id="evidenciaImg" src="" alt="" class="img-fluid mt-4 mb-4 w-100">
-													</div>
+													</div>-->
+                                                    <div class="profile-blog mb-5">
+                                                        <h5 class="text-primary d-inline">Imagen Voucher de Pago</h5>
+                                                        <div id="carouselEvidencia" class="carousel slide" data-ride="carousel">
+                                                            <div class="carousel-inner" id="carouselEvidenciaInner">
+                                                                <!-- Las imágenes se cargarán dinámicamente aquí -->
+                                                            </div>
+                                                            <a class="carousel-control-prev" href="#carouselEvidencia" role="button" data-slide="prev">
+                                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                                <span class="sr-only">Anterior</span>
+                                                            </a>
+                                                            <a class="carousel-control-next" href="#carouselEvidencia" role="button" data-slide="next">
+                                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                                <span class="sr-only">Siguiente</span>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+
 												</div>
 											</div>
 										</div>
@@ -349,7 +366,7 @@
                     } else if (data.pagos.cuotas_pagadas < data.pagos.cuotas_totales) {
                         $('.ver-cuotas-sin-pagar').addClass('d-none');    // Ocultar select
                         $('.ver-cuotas-pagados').removeClass('d-none');   // Mostrar input text
-                        $('#txtCuotas').val(data.cuotas_faltantes + " cuota(s) faltantes");
+                        $('#txtCuotas').val("Resta: "+data.resto_pagar  + ". Faltan "+data.cuotas_faltantes+" cuota(s).");
                         $('#icuotasfaltantes').val(data.cuotas_faltantes);
                     } else {
                         $('.ver-cuotas-sin-pagar').addClass('d-none');    // Ocultar select
@@ -377,12 +394,30 @@
 						$('#txtConfEvidenciaDepartamento').text(pagodata.departamento);
 						$('#txtConfEvidenciaConcepto').text(pagodata.descripcion_concepto+" "+pagodata.nombremes+" "+pagodata.anio.toString());
 						$('#txtConfEvidenciaTotal').text(pagodata.total);
-						if (pagodata.evidencia_url) {
-							// Actualiza el atributo src del elemento img con la URL de la imagen recibida
+						/*if (pagodata.evidencia_url) {
 							$('#evidenciaImg').attr('src', pagodata.evidencia_url);
 						} else {
 							console.error('No se encontró la evidencia');
-						}
+						}*/
+
+                        // Limpiar el contenido del carousel
+                        $('#carouselEvidenciaInner').empty();
+
+                        // Verificar si hay imágenes en evidencia_url
+                        if (pagodata.evidencia_url && pagodata.evidencia_url.length > 0) {
+                            pagodata.evidencia_url.forEach((url, index) => {
+                                // Crear un elemento div para cada imagen
+                                const isActive = index === 0 ? 'active' : '';
+                                const carouselItem = `
+                                    <div class="carousel-item ${isActive}">
+                                        <img src="${url}" class="d-block w-100" alt="Evidencia ${index + 1}">
+                                    </div>
+                                `;
+                                $('#carouselEvidenciaInner').append(carouselItem);
+                            });
+                        } else {
+                            console.error('No se encontraron evidencias');
+                        }
 					} else {
 						console.error('No se encontraron pagos');
 					}
@@ -420,7 +455,7 @@
 				data: formData,
 				contentType: false,
 				processData: false,
-				success: function(response) {
+				success: function(response) {console.log('responseeeeeeeeeeeeeeee',response);
 					if (response.success) {
 						limpiarFormEvidencia();
 						swal("Registro Correcto!", response.success, "success")
@@ -433,8 +468,13 @@
 					$('#pagoForm').find('button[type="submit"]').prop('disabled', false);
 				},
 				error: function(response) {
-					swal("Error!", 'Ocurrió un error', "error")
-					console.log('Ocurrió un error');
+                    let msgerror='';
+                    if(response.responseJSON && response.responseJSON.error){
+                        msgerror = response.responseJSON.error;
+                    }
+                    swal("Error!", 'Ocurrió un error. '+msgerror, "error")
+                    console.log('Ocurrió un error',response);
+                    $('#pagoForm').find('button[type="submit"]').prop('disabled', false);
 				}
 			});
 		});

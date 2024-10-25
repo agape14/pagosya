@@ -307,8 +307,16 @@ class PagoController extends Controller
         $query->where('pagos.id', $id);
         $pagos = $query->get();
         // Procesar cada resultado para agregar la URL completa de la evidencia
-        $pagos->transform(function ($pago) {
-            $pago->evidencia_url = asset('storage/' . $pago->evidencia);
+        $evidencias = PagoDetalle::where('id_pago', $id)->pluck('evidencia_det');
+
+        $pagos->transform(function ($pago) use ($evidencias)  {
+            /*$pago->evidencia_url = asset('storage/' . $pago->evidencia);
+            return $pago;*/
+            // Si tienes URLs concatenadas en un campo, divídelas en un array
+            $pago->evidencia_url = $evidencias->map(function ($evidencia) {
+                return asset('storage/' . $evidencia);
+            });
+
             return $pago;
         });
 
@@ -349,12 +357,15 @@ class PagoController extends Controller
         if (!$pago) {
             return response()->json(['error' => 'Pago no encontrado'], 404);
         }
-
+        $verPagosDetAnteriores = PagoDetalle::where('id_pago', $id)->get();
+        $totalCuotasPagadas = $verPagosDetAnteriores->sum('cuotas_pagadas');
+        $totalMontoPagadas = $verPagosDetAnteriores->sum('monto_pagado');
+        $restoApagar=$pago->total-$totalMontoPagadas;
         // Asignar el estado de la cuota basado en cuotas pagadas vs totales
-        if ($pago->cuotas_pagadas == 0) {
+        if ($totalCuotasPagadas == 0) {
             $pago->estado_cuota = "Primera cuota";
-        } elseif ($pago->cuotas_pagadas < $pago->cuotas_totales) {
-            $pago->estado_cuota = "Cuota {$pago->cuotas_pagadas} de {$pago->cuotas_totales}";
+        } elseif ($totalCuotasPagadas < $pago->cuotas_totales) {
+            $pago->estado_cuota = "Cuota {$totalCuotasPagadas} de {$pago->cuotas_totales}";
         } else {
             $pago->estado_cuota = "Pagado en su totalidad";
         }
@@ -363,12 +374,12 @@ class PagoController extends Controller
         $pago->evidencia_url = $pago->evidencia ? asset('storage/' . $pago->evidencia) : null;
 
         // Calcular las cuotas faltantes
-        $cuotas_faltantes = $pago->cuotas_totales - $pago->cuotas_pagadas;
+        $cuotas_faltantes = $pago->cuotas_totales - $totalCuotasPagadas;
 
         // Devolver la respuesta en formato JSON
         //return response()->json(['pago' => $pago, 'cuotas_faltantes' => $cuotas_faltantes]);
-        // Devolver la respuesta en formato JSON
-        return response()->json(['pagos' => $pago,'cuotas_faltantes' => $cuotas_faltantes]);
+        // Devolver la respuesta en formato JSON number_format($restoApagar, 2)
+        return response()->json(['pagos' => $pago,'cuotas_faltantes' => $cuotas_faltantes,'resto_pagar' => number_format($restoApagar, 2)]);
     }
 
     public function showprogramacion($id)
@@ -426,22 +437,67 @@ class PagoController extends Controller
                 $imageName = time() . '.' . $image->getClientOriginalExtension();
                 $path = $image->storeAs('evidencias', $imageName, 'public');
             }
-            $verificaPagosAnteriores = Pago::where('id', $request->pagoId)->first();
+            $verificaPagosAnteriores = Pago::where('id', $request->id)->first();
             if($verificaPagosAnteriores){
-                $verificaPagosDetAnteriores = ProgramacionPagoDetalle::where('id_pago', $request->pagoId)->get();
+                if(!$request->monto_a_pagar){
+                    DB::rollBack();
+                    return response()->json(['error' => 'Para realizar pago en partes, debe ingresar el monto a pagar.'], 500);
+                }
+                $verificaPagosDetAnteriores = PagoDetalle::where('id_pago', $request->id)->get();
+                $programacionDets = ProgramacionPagoDetalle::where('id_programacion', $verificaPagosAnteriores->id_programacion)->first();
+                //dd($programacionDets->id_concepto);
                 // Sumar todas las cuotas pagadas
                 $totalCuotasPagadas = $verificaPagosDetAnteriores->sum('cuotas_pagadas');
-
+                $totalMontoPagadas = $verificaPagosDetAnteriores->sum('monto_pagado');
+                $restoApagar=$verificaPagosAnteriores->total-$totalMontoPagadas;
+                if($request->monto_a_pagar>$restoApagar){
+                    DB::rollBack();
+                    return response()->json(['error' => 'El monto a pagar no puede ser mayor al restante.'], 500);
+                }
                 // Calcular las cuotas faltantes
-                $cuotas_faltantes = ($verificaPagosAnteriores->cuotas_totales - $totalCuotasPagadas)+1;
-                if($verificaPagosAnteriores->cuotas_totales==$cuotas_faltantes){
-                    ProgramacionPago::where('id_programacion', $request->id)
+                $cuotas_faltantes = ($verificaPagosAnteriores->cuotas_totales - ($totalCuotasPagadas+1));
+
+                if($cuotas_faltantes==0 ){
+                    ProgramacionPago::where('id', $verificaPagosAnteriores->id_programacion)
                     ->update(['estado_id' => 2]);
+
+                    Pago::where('id', $request->id)
+                    ->update(['estado_id' => 2]);
+
+                    $pagoDetallePartes = new PagoDetalle();
+                    $pagoDetallePartes->id_pago = $request->id;
+                    $pagoDetallePartes->id_concepto = $programacionDets->id_concepto;
+                    $pagoDetallePartes->monto = $verificaPagosAnteriores->total;
+                    $pagoDetallePartes->monto_pagado = $request->monto_a_pagar;
+                    $pagoDetallePartes->cuotas_pagadas = 1;
+                    $pagoDetallePartes->estado_id = 2;
+                    $pagoDetallePartes->evidencia_det = $path;
+                    $pagoDetallePartes->creado_por = auth()->id();
+                    $pagoDetallePartes->save();
                 }else{
-                    ProgramacionPago::where('id_programacion', $request->id)
+                    ProgramacionPago::where('id', $verificaPagosAnteriores->id_programacion)
                     ->update(['estado_id' => 4]);
+
+                    Pago::where('id', $request->id)
+                    ->update(['estado_id' => 4]);
+
+                    $pagoDetallePartes = new PagoDetalle();
+                    $pagoDetallePartes->id_pago = $request->id;
+                    $pagoDetallePartes->id_concepto = $programacionDets->id_concepto;
+                    $pagoDetallePartes->monto = $verificaPagosAnteriores->total;
+                    $pagoDetallePartes->monto_pagado = $request->monto_a_pagar;
+                    $pagoDetallePartes->cuotas_pagadas = 1;
+                    $pagoDetallePartes->estado_id = 4;
+                    $pagoDetallePartes->evidencia_det = $path;
+                    $pagoDetallePartes->creado_por = auth()->id();
+                    $pagoDetallePartes->save();
                 }
                 //$cuotas_faltantes = $pago->cuotas_totales - $pago->cuotas_pagadas;
+                $this->recordAudit('AddPagos', 'Pago En partes: ' . $request->id);
+                DB::commit();
+
+                return response()->json(['success' => 'Voucher guardada correctamente.'], 200);
+
             }else{
                 // Actualización de estados
                 $programacionPago = ProgramacionPago::findOrFail($request->id);
@@ -481,6 +537,7 @@ class PagoController extends Controller
                     $pagoDetalle->monto_pagado = $request->monto_a_pagar;
                     $pagoDetalle->cuotas_pagadas = $request->cuotas ? 1 : 0;
                     $pagoDetalle->estado_id = $estadoNuevo;
+                    $pagoDetalle->evidencia_det = $path;
                     $pagoDetalle->creado_por = auth()->id();
                     $pagoDetalle->save();
                 }

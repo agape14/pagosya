@@ -11,7 +11,7 @@ class PagoDetalle extends Model
     protected $table = 'pagos_detalle';
     protected $primaryKey = 'id';
     protected $fillable = [
-        'id_pago','id_concepto','monto','creado_por','actualizado_por','activo','estado_id','monto_pagado','cuotas_pagadas',
+        'id_pago','id_concepto','monto','monto_pagado','cuotas_pagadas','activo','estado_id','evidencia_det','creado_por','actualizado_por',
     ];
 
     /** */
