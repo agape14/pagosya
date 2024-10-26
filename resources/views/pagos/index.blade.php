@@ -408,11 +408,16 @@
                         // Cargar observaciones
                         let observacionesList = $('#observacionesList');
                         observacionesList.empty();
-                        if (pagodata.observaciones && pagodata.observaciones.length > 0) {
+                        if (pagodata.observaciones && Array.isArray(pagodata.observaciones) && pagodata.observaciones.length > 0) {
+                            // Si observaciones no es null y es un array con elementos
                             pagodata.observaciones.forEach(function(observacion) {
-                                observacionesList.append('<li>' + observacion + ' re</li>');
+                                if (observacion != null || observacion != undefined){
+                                    observacionesList.append('<li>' + observacion + '</li>');
+                                }
+
                             });
                         } else {
+                            // Si no hay observaciones
                             observacionesList.append('<li>No hay observaciones</li>');
                         }
 						/*if (pagodata.evidencia_url) {
