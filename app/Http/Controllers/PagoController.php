@@ -308,15 +308,15 @@ class PagoController extends Controller
         $pagos = $query->get();
         // Procesar cada resultado para agregar la URL completa de la evidencia
         $evidencias = PagoDetalle::where('id_pago', $id)->pluck('evidencia_det');
-
-        $pagos->transform(function ($pago) use ($evidencias)  {
+        $observaciones = PagoDetalle::where('id_pago', $id)->pluck('observacion');
+        $pagos->transform(function ($pago) use ($evidencias, $observaciones)  {
             /*$pago->evidencia_url = asset('storage/' . $pago->evidencia);
             return $pago;*/
             // Si tienes URLs concatenadas en un campo, divídelas en un array
             $pago->evidencia_url = $evidencias->map(function ($evidencia) {
                 return asset('storage/' . $evidencia);
             });
-
+            $pago->observaciones = $observaciones;
             return $pago;
         });
 
@@ -472,6 +472,7 @@ class PagoController extends Controller
                     $pagoDetallePartes->cuotas_pagadas = 1;
                     $pagoDetallePartes->estado_id = 2;
                     $pagoDetallePartes->evidencia_det = $path;
+                    $pagoDetallePartes->observacion = $request->observacion;
                     $pagoDetallePartes->creado_por = auth()->id();
                     $pagoDetallePartes->save();
                 }else{
@@ -489,6 +490,7 @@ class PagoController extends Controller
                     $pagoDetallePartes->cuotas_pagadas = 1;
                     $pagoDetallePartes->estado_id = 4;
                     $pagoDetallePartes->evidencia_det = $path;
+                    $pagoDetallePartes->observacion = $request->observacion;
                     $pagoDetallePartes->creado_por = auth()->id();
                     $pagoDetallePartes->save();
                 }
@@ -538,6 +540,7 @@ class PagoController extends Controller
                     $pagoDetalle->cuotas_pagadas = $request->cuotas ? 1 : 0;
                     $pagoDetalle->estado_id = $estadoNuevo;
                     $pagoDetalle->evidencia_det = $path;
+                    $pagoDetalle->observacion = $request->observacion;
                     $pagoDetalle->creado_por = auth()->id();
                     $pagoDetalle->save();
                 }

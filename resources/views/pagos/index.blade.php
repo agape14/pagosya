@@ -179,6 +179,10 @@
 													<label class="custom-file-label" for="evidencia" id="lblImagen">Seleccionar imagen</label>
 												</div>
 											</div>
+                                            <div class="form-group mb-0">
+                                                <label for="observacion">Observacion:</label>
+                                                <textarea class="form-control" rows="4" id="observacion" name="observacion"></textarea>
+                                            </div>
 										</div>
 										<div class="modal-footer">
 											<button type="button" class="btn btn-danger light" data-dismiss="modal">Cancelar</button>
@@ -217,6 +221,13 @@
 														<h4 class="text-primary d-inline">Total:</h4>
 														<span id="txtConfEvidenciaTotal" class="pull-right f-s-16"></span>
 													</div>
+                                                     <!-- Observaciones -->
+                                                    <div class="form-group">
+                                                        <h5 class="text-primary">Observaciones:</h5>
+                                                        <ul id="observacionesList" class="list-unstyled">
+                                                            <!-- Las observaciones se cargarán aquí dinámicamente -->
+                                                        </ul>
+                                                    </div>
 													<!--<div class="profile-blog mb-5">
 														<h5 class="text-primary d-inline">Imagen Voucher de Pago</h5><a href="javascript:void()" class="pull-right f-s-16"> </a>
 														<img id="evidenciaImg" src="" alt="" class="img-fluid mt-4 mb-4 w-100">
@@ -394,6 +405,16 @@
 						$('#txtConfEvidenciaDepartamento').text(pagodata.departamento);
 						$('#txtConfEvidenciaConcepto').text(pagodata.descripcion_concepto+" "+pagodata.nombremes+" "+pagodata.anio.toString());
 						$('#txtConfEvidenciaTotal').text(pagodata.total);
+                        // Cargar observaciones
+                        let observacionesList = $('#observacionesList');
+                        observacionesList.empty();
+                        if (pagodata.observaciones && pagodata.observaciones.length > 0) {
+                            pagodata.observaciones.forEach(function(observacion) {
+                                observacionesList.append('<li>' + observacion + ' re</li>');
+                            });
+                        } else {
+                            observacionesList.append('<li>No hay observaciones</li>');
+                        }
 						/*if (pagodata.evidencia_url) {
 							$('#evidenciaImg').attr('src', pagodata.evidencia_url);
 						} else {
