@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ConceptoController;
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\GastoController;
@@ -30,7 +29,7 @@ use App\Http\Controllers\TipoConceptoController;
 
 //Route::get('/', 'App\Http\Controllers\ChrevadminController@dashboard_1');
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('showlogin');
 });
 
 /*Route::middleware([
@@ -45,9 +44,13 @@ Route::get('/', function () {
 */
 
 // Definir la ruta para el procesamiento del formulario de inicio de sesión
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+/*Route::get('/login', [LoginControlle::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
+*/
+Route::get('/showlogin', 'App\Http\Controllers\Auth\LoginController@showLoginForm')->name('showlogin');
+Route::post('/iniciarsesion', 'App\Http\Controllers\Auth\LoginController@iniciarsesion')->name('iniciarsesion');
+Route::get('/cerrarsesion', 'App\Http\Controllers\Auth\LoginController@cerrarsesion')->name('cerrarsesion');
 
 // Agrupar las rutas protegidas con el middleware 'auth'
 Route::middleware(['auth'])->group(function () {
@@ -158,13 +161,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/programacion', [ProgramacionPagoController::class, 'programacion_index'])->name('programacion');
     Route::get('/programacion/data', [ProgramacionPagoController::class, 'getData'])->name('programacion.data');
     Route::post('programacion', [ProgramacionPagoController::class, 'storeProgramacion'])->name('programacion.store');
-    Route::get('/programacion/get/{id}', [ProgramacionPagoController::class, 'show'])->name('propietarios_get_id');
+    Route::get('/programacion/get/{id}', [ProgramacionPagoController::class, 'show'])->name('programacion_get_id');
     Route::delete('/programacion/delete/{id}', [ProgramacionPagoController::class, 'destroy'])->name('programacion_delete_id');
 
 
     Route::get('/pagos', [PagoController::class, 'pagos_index'])->name('pagos');
     Route::get('/pagos/data', [PagoController::class, 'gettblPagos'])->name('pagos.data');
-    Route::get('/pagos/getpogramacion/{id}', [PagoController::class, 'showprogramacion'])->name('pagos_get_id');
+    Route::get('/pagos/getpogramacion/{id}', [PagoController::class, 'showprogramacion'])->name('pagos_getpogramacion_id');
     Route::get('/pagos/getpagopartes/{id}', [PagoController::class, 'pagoPartes'])->name('pagopartes_get_id');
     Route::get('/pagos/get/{id}', [PagoController::class, 'show'])->name('pagos_get_id');
     Route::post('/guardar-evidencia', [PagoController::class, 'guardarEvidencia'])->name('guardar.evidencia');

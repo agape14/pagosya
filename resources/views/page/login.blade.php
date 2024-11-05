@@ -42,7 +42,7 @@
                                 </ul>
                             </div>
                         @endif
-                        <form method="POST" action="{{ route('login') }}">
+                        <form method="POST" action="{{ route('iniciarsesion') }}">
                             @csrf <!-- Agrega el token CSRF para protección contra CSRF -->
 
                             <div class="form-group">

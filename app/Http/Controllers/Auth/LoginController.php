@@ -22,23 +22,15 @@ class LoginController extends Controller
         return view('page.login', compact('page_title', 'page_description','action','torre_trabajo'));
     }
 
-    public function login(Request $request)
+    public function iniciarsesion(Request $request)
     {
-        $credentials = $request->only('usuario', 'contrasenia');
-
         // Validar los datos
         $request->validate([
-            'usuario' => 'required|string',
-            'contrasenia' => 'required|string',
-          ]);
-        /**
-         *
-         *   'g-recaptcha-response' => 'required|captcha',
-        *], [
-        *    'g-recaptcha-response.required' => 'Por favor, completa el reCAPTCHA.',
-        *    'g-recaptcha-response.captcha' => 'La validación de reCAPTCHA ha fallado.',
-        **/
+        'usuario' => 'required|string',
+        'contrasenia' => 'required|string',
+        ]);
 
+          $credentials = $request->only('usuario', 'contrasenia');
         // Intentar autenticar al usuario
         if (Auth::attempt(['usuario' => $credentials['usuario'], 'password' => $credentials['contrasenia']])) {
             // Obtener el usuario autenticado
@@ -65,9 +57,9 @@ class LoginController extends Controller
         ]);
     }
 
-    public function logout()
+    public function cerrarsesion()
     {
         Auth::logout();
-        return redirect('/login'); // Cambia '/login' por la ruta que desees
+        return redirect('/showlogin'); // Cambia '/login' por la ruta que desees
     }
 }
