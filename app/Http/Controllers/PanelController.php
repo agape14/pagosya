@@ -27,8 +27,9 @@ class PanelController extends Controller
         $current_year = now()->year;
 
         $conceptos = Concepto::with('nombreMes')->where('id_tipo_concepto','=','1')->where('activo','=','1')->get();
-        $user = auth()->user(); //dd($user);
-        $contdeuda = 0; //$user->deuda; // Suponiendo que tienes un método para calcular la deuda del usuario
+        $user = auth()->user();
+        $propietario_user = Propietario::where('id_usuario', $user->id)->first();
+        $contdeuda = 0;
         $query = ProgramacionPago::select(
             'programacion_pagos.id',
             'propietarios.departamento',
@@ -49,13 +50,37 @@ class PanelController extends Controller
         ->join('estados_pagos', 'estados_pagos.id', '=', 'programacion_pagos.estado_id')
         ->where('programacion_pagos.activo', '=', 1)
         ->where('conceptos.id_tipo_concepto', '=', 1)
-        ->where('conceptos.activo', '=', 1)
-        ->whereIn('estados_pagos.id', [1,2,4,5]);
-        $query->where('propietarios.id',2);
-        // Contar el número de deudas
-        $contdeuda = $query->count();
+        ->where('conceptos.activo', '=', 1);
+        if($propietario_user ){
+            $query->where('propietarios.id',$propietario_user->id);
+        }else{
+            $query->where('propietarios.id',2);
+        }
+
+        $queryContador = clone $query;
+        $queryContador->whereIn('estados_pagos.id', [1, 2, 4, 5]);
+        $contdeuda = $queryContador->count();
+
+        $query->whereIn('estados_pagos.id', [1,2,3,4,5]);
         $detdeudas = $query->get();
-        return view('panel.index', compact('page_title', 'page_description','action','logo','logoText', 'current_year','conceptos','contdeuda','detdeudas'));
+
+        $detdeudas_con_observacion = collect();
+
+        foreach ($detdeudas as $deuda) {
+            $pago = Pago::where('id_programacion', $deuda->id)->first();
+            $observacion = null;
+
+            if ($pago) {
+                $pago_detalle_obs = PagoDetalle::where('id_pago', $pago->id)->pluck('observacion');
+                if ($pago_detalle_obs->isNotEmpty()) {
+                    $observacion = $pago_detalle_obs->implode('/ ');
+                }
+            }
+            $deuda->observacion = $observacion;
+            $detdeudas_con_observacion->push($deuda);
+        }
+
+        return view('panel.index', compact('page_title', 'page_description','action','logo','logoText', 'current_year','conceptos','contdeuda','detdeudas','detdeudas_con_observacion'));
     }
 
     public function obtenerDatosPorConcepto(Request $request)

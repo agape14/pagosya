@@ -20,7 +20,10 @@
 								Filtro
 							</div>
 							<div class="tools">
-								<a href="javascript:void(0);" class="expand handle"><i class="fa fa-angle-down"></i></a>
+								{{-- <a href="javascript:void(0);" class="expand handle"><i class="fa fa-angle-down"></i></a>  --}}
+                                <button class="btn btn-xs btn-primary" title="Click para Pago Multiple" type="button" data-toggle="modal" data-target="#pagoMultipleModal">
+                                    <i class="fa fa-money" aria-hidden="true"></i> Pago Multiple
+                                </button>
 							</div>
 						</div>
 						<div class="card-body  p-2">
@@ -78,6 +81,55 @@
 								</div>
                             </form>
 						</div>
+                        <!-- Modal -->
+                        <div class="modal fade" id="pagoMultipleModal" tabindex="-1" role="dialog" aria-labelledby="pagoMultipleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="pagoMultipleModalLabel">Registrar Pago Múltiple</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- Formulario para registrar pagos -->
+                                        <form id="formPagoMultiple" action="{{ route('guardar.evidenciamultiple') }}" method="POST" enctype="multipart/form-data">
+                                            @csrf
+                                            <!-- Campos del formulario de registro de pagos -->
+                                            <div class="form-group">
+                                                <label for="cbxConceptoMultiple">Concepto</label>
+                                                <select id="cbxConceptoMultiple" name="cbxConceptoMultiple" class="form-control single-select" required>
+                                                    <option value="">Seleccione un Concepto</option>
+                                                    @foreach ($conceptos as $concepto)
+                                                        <option value="{{ $concepto->id }}">
+                                                            {{ $concepto->descripcion_concepto . " " . ($concepto->nombreMes ? $concepto->nombreMes->nombremes : '') . " " . ($concepto->anio?$concepto->anio : '') }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="custom-file">
+                                                <input type="file" class="custom-file-input" name="evidenciamultiple" id="evidenciamultiple" accept="image/*" required>
+                                                <label class="custom-file-label" for="evidenciamultiple" id="lblImagenmultiple">Seleccionar imagen</label>
+                                            </div>
+                                            <!--<div class="form-group">
+                                                <label for="monto">Monto</label>
+                                                <input type="number" class="form-control" id="monto" name="monto" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="descripcion">Descripción</label>
+                                                <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required></textarea>
+                                            </div>
+                                             Agrega más campos según sea necesario -->
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn light btn-dark" data-dismiss="modal">Cerrar</button>
+                                        <button type="submit" form="formPagoMultiple" class="btn btn-primary">Registrar Pago</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
 					</div>
 				</div>
 				<!--<div class="cm-content-body form excerpt"></div>-->
@@ -471,6 +523,20 @@
 			}
 		});
 
+        $('#evidenciamultiple').on('change', function() {
+			var file = this.files[0];
+			var fileType = file.type;
+			var match = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+			if(!((fileType == match[0]) || (fileType == match[1]) || (fileType == match[2]) || (fileType == match[3]))) {
+				swal("Error!", 'Seleccione una imagen válida (JPEG/JPG/PNG/GIF).', "error");
+				$('#evidenciamultiple').val('');
+            	$('#evidenciamultiple').next('.custom-file-label').text('Seleccionar imagen');
+			}else{
+				var fileName = file.name;
+                $(this).next('.custom-file-label').text(fileName);
+			}
+		});
+
 		$('#pagoForm').submit(function(e) {
 			e.preventDefault();
 			$(this).find('button[type="submit"]').prop('disabled', true);
@@ -528,6 +594,36 @@
 					swal("Error!", 'Ocurrió un error', "error")
 					console.log('Ocurrió un error');
 					$('#confirmaPagoForm').find('button[type="submit"]').prop('disabled', false);
+				}
+			});
+		});
+
+        $('#formPagoMultiple').submit(function(e) {
+			e.preventDefault();
+			$(this).find('button[type="submit"]').prop('disabled', true);
+            var formData = new FormData(this);
+			$.ajax({
+				url: '{{ route('guardar.evidenciamultiple') }}',
+				method: 'POST',
+                data: formData,
+				contentType: false,
+				processData: false,
+				success: function(response) {
+					if (response.success) {
+						$('#pagoMultipleModal').modal('hide');
+						swal("Registro Correcto!", response.success, "success")
+						$('#tblPago').DataTable().ajax.reload(null, false);
+
+					} else {
+						swal("Error!", 'Ocurrió un error', "error")
+						console.log('Ocurrió un error');
+					}
+					$('#formPagoMultiple').find('button[type="submit"]').prop('disabled', false);
+				},
+				error: function(response) {
+					swal("Error!", 'Ocurrió un error', "error")
+					console.log('Ocurrió un error');
+					$('#formPagoMultiple').find('button[type="submit"]').prop('disabled', false);
 				}
 			});
 		});

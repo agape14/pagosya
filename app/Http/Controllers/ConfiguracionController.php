@@ -7,6 +7,7 @@ use App\Models\Permiso;
 use App\Models\PermisoUsuario;
 use App\Models\Torre;
 use App\Models\Usuario;
+use App\Models\Propietario;
 use App\Traits\RecordsAudit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +25,7 @@ class ConfiguracionController extends Controller
     {
         $page_title = 'Mi Cuenta';
         $page_description = 'Some description for the page';
-		
+
         $action = __FUNCTION__;
         $usuario= Usuario::with('perfil')->findOrFail(Auth::id());
         $perfiles = Perfil::all();
@@ -35,7 +36,7 @@ class ConfiguracionController extends Controller
     {
         $page_title = 'Usuarios';
         $page_description = 'Some description for the page';
-		
+
         $action = __FUNCTION__;
         $torres = Torre::all();
         $perfiles = Perfil::all();
@@ -45,9 +46,9 @@ class ConfiguracionController extends Controller
     public function getUsuarios()
     {
         $torres = Usuario::select(
-            'usuarios.id', 
-            'usuarios.nombres_completos', 
-            'usuarios.correo_electronico', 
+            'usuarios.id',
+            'usuarios.nombres_completos',
+            'usuarios.correo_electronico',
             'usuarios.telefono',
             'usuarios.id_perfil',
             'perfiles.nombre_perfil',
@@ -88,7 +89,7 @@ class ConfiguracionController extends Controller
     }
 
     public function usuarioshow($id)
-    {   
+    {
         $usuario = Usuario::find($id);
         return response()->json($usuario);
     }
@@ -104,7 +105,7 @@ class ConfiguracionController extends Controller
                 'telefono' => 'required|string|max:12',
                 'id_perfil' => 'required|int',
             ]);
-        
+
             $edituser = Usuario::findOrFail($idUsuario);
             $edituser->nombres_completos = $request->nombres_completos;
             $edituser->correo_electronico = $request->correo_electronico;
@@ -118,7 +119,7 @@ class ConfiguracionController extends Controller
             $this->recordAudit('Editado', 'Usuario editado: ' . $edituser->id);
             return response()->json(['success' => 'Usuario actualizada correctamente.']);
         }else{
-            
+
             $request->validate([
                 'usuario' => 'required|string|max:150',
                 'contrasenia' => 'required|string|max:150',
@@ -141,7 +142,7 @@ class ConfiguracionController extends Controller
             $this->recordAudit('Nuevo', 'Usuario creado: ' . $newusuario->id);
             return response()->json(['success' => 'Usuario creado correctamente.'], 200);
         }
-        
+
     }
 
     public function destroyuser($id)
@@ -178,7 +179,7 @@ class ConfiguracionController extends Controller
     {
         $page_title = 'Permisos';
         $page_description = 'Some description for the page';
-		
+
         $action = __FUNCTION__;
         $permisos = Permiso::with('hijos')->whereNull('parent_id')->get();
         //$permisos = Permiso::all();
@@ -205,9 +206,9 @@ class ConfiguracionController extends Controller
             ]);
         }
         return response()->json(['success' => 'Permisos agregado correctamente.']);
-        
+
     }
-    
+
     /**
      * Show the form for creating a new resource.
      *
@@ -290,4 +291,48 @@ class ConfiguracionController extends Controller
     {
         //
     }
+
+    public function crearUsuarioMultiplePropietarios($cantidadPropietario = 120)
+    {
+        // Establecer la cantidad de propietarios a procesar, con un valor predeterminado de 120
+        $idperfil = Perfil::where('nombre_perfil', 'Propietario')->first()->id;
+
+        try {
+            // Obtener propietarios que no tienen usuario asociado y un dni diferente de '00000000'
+            $propietarios_for = Propietario::whereNull('id_usuario')
+                ->where('dni', '<>', '00000000')
+                ->orderBy('id', 'asc')
+                ->take($cantidadPropietario)
+                ->get();
+
+            // Procesar cada propietario para crear el usuario correspondiente
+            foreach ($propietarios_for as $propietario) {
+                // Crear un nuevo usuario para el propietario
+                $newusuario = new Usuario();
+                $newusuario->usuario = 'dpto' . $propietario->departamento;
+                $newusuario->nombres_completos = $propietario->nombre . " " . $propietario->apellido;
+                $newusuario->correo_electronico = $propietario->correo_electronico;
+                $newusuario->telefono = $propietario->telefono;
+                $newusuario->id_perfil = $idperfil;
+                $newusuario->contrasenia = bcrypt($propietario->dni); // Se usa el dni como contraseña temporal
+                $newusuario->creado_por = Auth::id();
+                $newusuario->save();
+
+                // Asociar el propietario con el nuevo usuario
+                $propietario->id_usuario = $newusuario->id;
+                $propietario->save();
+
+                // Registrar en la auditoría
+                $this->recordAudit('Nuevo', 'Usuario creado: ' . $newusuario->id);
+            }
+
+            // Devolver una respuesta de éxito
+            return response()->json(['success' => 'Usuarios creados correctamente.'], 200);
+
+        } catch (\Exception $e) {
+            // Manejar cualquier error que ocurra durante el proceso
+            return response()->json(['error' => 'Ocurrió un error al crear los usuarios: ' . $e->getMessage()], 500);
+        }
+    }
+
 }

@@ -13,7 +13,7 @@
             height: auto;
         }
     </style>
-    
+
 </head>
 <body>
     <table width="100%">
@@ -35,10 +35,10 @@
                         </td>
                     </tr>
                 </table >
-                
+
             </td>
         </tr>
-        
+
     </table >
 </br>
     <table class="table">
@@ -66,11 +66,19 @@
         </thead>
         <tbody>
             @foreach($detalles as $detalle)
-                <tr>
-                    <td>1</td>
-                    <td>{{ $detalle->concepto->descripcion_concepto ." ".$detalle->concepto->nombreMes->nombremes." ".$detalle->concepto->anio }}</td>
-                    <td style="text-align: right;">S/. {{ number_format($detalle->monto, 2) }}</td>
-                </tr>
+                @if ($detalle->concepto->mes>0 && $detalle->concepto->anio>0)
+                    <tr>
+                        <td>1</td>
+                        <td>{{ $detalle->concepto->descripcion_concepto ." ".$detalle->concepto->nombreMes->nombremes." ".$detalle->concepto->anio }}</td>
+                        <td style="text-align: right;">S/. {{ number_format($detalle->monto, 2) }}</td>
+                    </tr>
+                @else
+                    <tr>
+                        <td>1</td>
+                        <td>{{ $detalle->concepto->descripcion_concepto  }}</td>
+                        <td style="text-align: right;">S/. {{ number_format($detalle->monto, 2) }}</td>
+                    </tr>
+                @endif
             @endforeach
         </tbody>
         <tfoot>

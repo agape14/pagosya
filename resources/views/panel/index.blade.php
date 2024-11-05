@@ -7,7 +7,7 @@
 @section('content')
             <!-- row -->
 			<div class="container-fluid">
-                @if (Auth::user()->id_perfil == 1 )
+                @if (Auth::user()->id_perfil == 3 )
                  <!-- Mostrar el panel para el propietario con alertas según su deuda -->
                  <div class="row">
                     <div class="col-xl-12">
@@ -49,11 +49,13 @@
                                                     $contador = 1; // Contador inicial
                                                     $totalGeneral = 0; // Inicializar la suma total
                                                 @endphp
-                                                @foreach ($detdeudas as $detdeuda)
+                                                @foreach ($detdeudas_con_observacion as $detdeuda)
                                                     <tr>
                                                         <th scope="row">{{ $contador }}</th>
                                                         <td>{{ $detdeuda->departamento }}</td>
-                                                        <td>{{ $detdeuda->descripcion_concepto }}</td>
+                                                        <td>{{ $detdeuda->descripcion_concepto }} <br>
+                                                            <span class="text-danger">{{ $detdeuda->observacion ?? '' }}</span>
+                                                        </td>
                                                         <td class="text-right text-primary">{{ $detdeuda->total }}</td>
                                                         <td>{{ $detdeuda->estado }}</td>
                                                       </tr>
@@ -75,13 +77,10 @@
                                 </div>
                             </div>
                         </div>
-
-
-
                     </div>
                 </div>
 
-                @elseif (Auth::user()->id_perfil == 1 || Auth::user()->id_perfil == 3)
+                @elseif (Auth::user()->id_perfil == 1 || Auth::user()->id_perfil == 2)
                 <div class="row">
                     <div class="col-xl-12">
                         <div class="input-group search-area d-inline-flex">

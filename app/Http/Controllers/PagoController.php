@@ -557,6 +557,86 @@ class PagoController extends Controller
         }
     }
 
+    public function guardarEvidenciaMultiple(Request $request)
+    {
+        $request->validate([
+            'evidenciamultiple' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'cbxConceptoMultiple' => 'required|integer',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            if ($request->hasFile('evidenciamultiple')) {
+                $image = $request->file('evidenciamultiple');
+                $imageName = time() . '.' . $image->getClientOriginalExtension();
+                $path = $image->storeAs('evidencias', $imageName, 'public');
+            }
+
+            $propietarios_for = Propietario::orderBy('id', 'asc')->take(120)->get();
+            foreach ($propietarios_for as $propietario) {
+
+                $programacionPago = ProgramacionPago::where('id_propietario', $propietario->id)
+                ->where('activo', 1)
+                ->where('estado_id', 1)
+                ->where('incobrable', 0)
+                ->whereHas('detalles', function ($query) use ($request) {
+                    $query->where('id_concepto', $request->cbxConceptoMultiple);
+                })
+                ->first();
+
+                if ($programacionPago) {
+                    $request->monto_a_pagar=$programacionPago->total;
+
+                    $programacionPago->estado_id = 3;
+                    $programacionPago->save();
+                    // Si se encuentra la ProgramacionPago, actualiza su ProgramacionPagoDetalle
+                    ProgramacionPagoDetalle::where('id_programacion', $programacionPago->id)
+                        ->update(['estado_id' => 3]);
+
+                    // Registro en tabla pagos
+                    $pago = new Pago();
+                    $pago->id_propietario = $propietario->id;
+                    $pago->fecha = now();
+                    $pago->total = $programacionPago->total;
+                    $pago->cuotas_totales = 1;
+                    $pago->creado_por = auth()->id();
+                    $pago->evidencia = $path;
+                    $pago->estado_id = 3; // "PAGO EN PARTES" o "PAGADO"
+                    $pago->activo = 1;
+                    $pago->id_programacion = $programacionPago->id;
+                    $pago->save();
+
+                    // Detalles del pago
+                    $programacionDetalles = ProgramacionPagoDetalle::where('id_programacion', $programacionPago->id)->get();
+                    foreach ($programacionDetalles as $detalle) {
+                        $pagoDetalle = new PagoDetalle();
+                        $pagoDetalle->id_pago = $pago->id;
+                        $pagoDetalle->id_concepto = $detalle->id_concepto;
+                        $pagoDetalle->monto = $programacionPago->total;
+                        $pagoDetalle->monto_pagado = $request->monto_a_pagar;
+                        $pagoDetalle->cuotas_pagadas = 1;
+                        $pagoDetalle->estado_id = 3;
+                        $pagoDetalle->evidencia_det = $path;
+                        $pagoDetalle->observacion = null;
+                        $pagoDetalle->creado_por = auth()->id();
+                        $pagoDetalle->save();
+                    }
+                    $this->recordAudit('Nuevo', 'Pago Multiple Registrado: ' . $pago->id);
+                }
+            }
+
+
+            DB::commit();
+
+            return response()->json(['success' => 'Pago múltiple registrado correctamente.'], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Error al guardar el pago múltiple.'.$e->getMessage()], 500);
+        }
+    }
+
     public function confirmarEvidencia(Request $request)
     {
         $request->validate([

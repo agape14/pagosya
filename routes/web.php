@@ -170,7 +170,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/guardar-evidencia', [PagoController::class, 'guardarEvidencia'])->name('guardar.evidencia');
     Route::post('/confirmar-evidencia', [PagoController::class, 'confirmarEvidencia'])->name('confirmar.evidencia');
     Route::get('/pagos/{id}/pdf', [PagoController::class, 'generatePDF'])->name('pagos.pdf');
-
+    Route::post('/guardar-evidenciamultiple', [PagoController::class, 'guardarEvidenciaMultiple'])->name('guardar.evidenciamultiple');
 
     Route::get('/gastos', [GastoController::class, 'gastos_index'])->name('gastos');
     Route::get('/gastos/data', [GastoController::class, 'getTblGastos'])->name('gastos.data');
@@ -194,6 +194,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/editusuario/{id}', [ConfiguracionController::class, 'usuariostore'])->name('usuario_edit');
     Route::delete('/usuarios/delete/{id}', [ConfiguracionController::class, 'destroyuser'])->name('usuarios_delete_id');
     Route::delete('/usuarios/active/{id}', [ConfiguracionController::class, 'activeuser'])->name('usuarios_active_id');
+    Route::post('/addusuariomultiple/{cantidadPropietario}', [ConfiguracionController::class, 'crearUsuarioMultiplePropietarios'])->name('addusuariomultiple');
 
     Route::get('/perfiles', [ConfiguracionController::class, 'perfiles_index'])->name('perfiles');
     Route::get('/permisos', [ConfiguracionController::class, 'permisos_index'])->name('permisos');

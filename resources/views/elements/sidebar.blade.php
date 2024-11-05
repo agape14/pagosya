@@ -7,6 +7,12 @@
                             <span class="nav-text">Panel de Control</span>
                         </a>
                     </li>
+                    @else
+                    <li><a href="{!! url('/panel'); !!}" class="ai-icon" aria-expanded="false">
+                            <i class="flaticon-381-networking"></i>
+                            <span class="nav-text">Estado Cuenta</span>
+                        </a>
+                    </li>
                     @endif
                     @if(in_array(config('permisos.mantenimientos'), session('permisos_usuario')))
                     <li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">
@@ -57,7 +63,7 @@
                             <span class="nav-text">Configuracion</span>
                         </a>
                         <ul aria-expanded="false">
-                            
+
                             @if(in_array(config('permisos.usuarios'), session('permisos_usuario')))
                                 <li><a href="{!! url('/usuarios'); !!}">Usuarios</a></li>
                             @endif
@@ -204,7 +210,7 @@
                         </ul>
                     </li>--}}
                 </ul>
-            
+
 				{{--<div class="add-menu-sidebar">
 					<p>Generate Monthly Credit Report</p>
 					<a href="javascript:void(0);">

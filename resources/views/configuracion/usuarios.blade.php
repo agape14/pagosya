@@ -21,6 +21,7 @@
                 <div class="card-body">
                     <div class="form-head d-flex mb-2 mb-md-2 align-items-start">
                         <div class="input-group search-area d-inline-flex"></div>
+                        <a href="javascript:void(0);" id="createUsersBtn" class="btn btn-primary ml-auto">+ Crear Usuarios Multiples</a>
                         <a href="javascript:void(0);" data-toggle="modal" data-target="#AddUsuarioModal" class="btn btn-primary ml-auto">+ Nuevo Usuario</a>
                     </div>
                     <div class="table-responsive">
@@ -86,7 +87,7 @@
                                     <button type="submit" class="btn btn-primary">Guardar</button>
                                 </div>
                             </form>
-                            
+
                         </div>
                         </div>
                     </div>
@@ -95,7 +96,7 @@
             </div>
         </div>
     </div>
-    
+
 </div>
 @endsection
     <script type="module">
@@ -121,8 +122,8 @@
                 $('#txtCelular').val('');
                 $('#cbxPerfil').val('').trigger('change');
                 $('#txtUsuario').val('');
-                $('#txtUsuario').prop('disabled', ''); 
-                $('#txtContrasenia').prop('required', 'required'); 
+                $('#txtUsuario').prop('disabled', '');
+                $('#txtContrasenia').prop('required', 'required');
                 $('#AddUsuarioModalLabel-1').text('Agregar Nuevo Usuario');
                 $('#UsuarioForm').attr('action', '{{ route('addusuario') }}').attr('method', 'POST');
                 $('#UsuarioForm input[name="_method"]').remove();
@@ -137,8 +138,8 @@
                     $('#txtCelular').val(data.telefono);
                     $('#cbxPerfil').val(data.id_perfil).trigger('change');
                     $('#txtUsuario').val(data.usuario);
-                    $('#txtContrasenia').prop('required', ''); 
-                    $('#txtUsuario').prop('disabled', 'disabled'); 
+                    $('#txtContrasenia').prop('required', '');
+                    $('#txtUsuario').prop('disabled', 'disabled');
                     $('#AddUsuarioModal').modal('show');
                     $('#AddUsuarioModalLabel-1').text('Editar Usuario');
                     $('#UsuarioForm').attr('action', '/editusuario/' + id).attr('method', 'POST');
@@ -194,7 +195,7 @@
                                 $('#tblUsuarios').DataTable().ajax.reload();
                             }
                         });
-                        
+
                     }else{
                         swal("Cancelado!", "Se cancelo la accion", "error")
                     }
@@ -227,11 +228,45 @@
                                 $('#tblUsuarios').DataTable().ajax.reload();
                             }
                         });
-                        
+
                     }else{
                         swal("Cancelado!", "Se cancelo la accion", "error")
                     }
                 })
             });
+
+
+            $('#createUsersBtn').on('click', function() {
+                swal({
+                    title: "¿Estás seguro?",
+                    text: "Esta acción creará usuarios para los propietarios seleccionados.",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true,
+                })
+                .then((willCreate) => {
+                    if (willCreate) {
+                        // Llamar al controlador a través de AJAX
+                        $.ajax({
+                            url: "{{ route('addusuariomultiple', ['cantidadPropietario' => 120]) }}", // Reemplaza con el número de propietarios si es necesario
+                            type: 'POST',
+                            data: {
+                                _token: "{{ csrf_token() }}", // Token CSRF necesario para Laravel
+                            },
+                            success: function(response) {
+                                // Si la respuesta es exitosa, mostrar SweetAlert de éxito
+                                swal("¡Usuarios creados!", response.success, "success");
+                                $('#tblUsuarios').DataTable().ajax.reload();
+                            },
+                            error: function(xhr) {
+                                // Si hay un error, mostrar el mensaje de error devuelto por el controlador
+                                let errorMessage = xhr.responseJSON ? xhr.responseJSON.error : "Ocurrió un error, contacta al administrador.";
+                                swal("Error!", errorMessage, "error");
+                            }
+                        });
+                    }
+                });
+            });
+
         });
     </script>
