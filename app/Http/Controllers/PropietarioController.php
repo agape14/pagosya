@@ -35,7 +35,7 @@ class PropietarioController extends Controller
         $idTorre = env('ID_TORRE_SISTEMA', 6);
         // Obtener los IDs de los propietarios que ya tienen subpropietarios
         $idsPropietariosConSubPropietarios = SubPropietario::pluck('sub_propietario_id')->toArray();
-
+        //dd($idTorre);
         $propietarios = Propietario::where('id_torre', $idTorre)
             ->whereNotIn('id', $idsPropietariosConSubPropietarios)
             ->select('propietarios.id','propietarios.nombre', 'propietarios.apellido', 'propietarios.correo_electronico', 'propietarios.telefono', 'propietarios.departamento')

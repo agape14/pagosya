@@ -31,7 +31,9 @@ use App\Http\Controllers\TipoConceptoController;
 Route::get('/', function () {
     return redirect()->route('showlogin');
 });
-
+Route::get('/login', function () {
+    return redirect()->route('showlogin');
+});
 /*Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
