@@ -64,11 +64,8 @@ class GastoController extends Controller
         $fecha = Carbon::createFromFormat('d/m/Y', $fecha)->format('Y-m-d');
         $query->whereDate('gastos.fecha', $fecha);
     }
-
-    //$gastos = $query->groupBy('gastos.id,')->get();
     $gastos = $query->groupBy('gastos.id', 'gastos.fecha', 'gastos.total', 'gastos.created_at', 'creador.nombres_completos')->get();
-
-    dd($query->toSql(),$gastos->isEmpty());
+    //dd($query->toSql(),$gastos->isEmpty());
     if ($gastos->isEmpty()) {
         return DataTables::of(collect([]))->make(true);
     }else{
