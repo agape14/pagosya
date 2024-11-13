@@ -66,10 +66,11 @@ class GastoController extends Controller
     }
 
     $gastos = $query->groupBy('gastos.id')->get();
+    dd($query->toSql(),$gastos->isEmpty());
     if ($gastos->isEmpty()) {
         return DataTables::of(collect([]))->make(true);
-    }
-    return DataTables::of($gastos)
+    }else{
+        return DataTables::of($gastos)
         ->addColumn('detalle', function($row) {
             // Obtener los detalles de gastos para este gasto
             $detalles = GastoDetalle::select('descripcion', 'monto')
@@ -131,6 +132,8 @@ class GastoController extends Controller
         })
         ->rawColumns(['detalle', 'action'])
         ->make(true);
+    }
+
 }
 
     public function create()
