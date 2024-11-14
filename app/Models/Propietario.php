@@ -10,7 +10,7 @@ class Propietario extends Model
     use HasFactory;
     protected $table = 'propietarios';
     protected $primaryKey = 'id';
-    protected $fillable = ['nombre', 'apellido', 'correo_electronico', 'telefono', 'id_codigo_pais', 'departamento', 'id_torre', 'creado_por','actualizado_por'];
+    protected $fillable = ['nombre', 'apellido', 'correo_electronico', 'telefono', 'id_codigo_pais', 'departamento', 'id_torre','id_usuario','dni','creado_por','actualizado_por'];
 
     public function pagos()
     {

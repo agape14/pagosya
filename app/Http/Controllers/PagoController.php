@@ -10,6 +10,7 @@ use App\Models\ProgramacionPagoDetalle;
 use App\Models\Propietario;
 use App\Models\SubPropietario;
 use App\Traits\RecordsAudit;
+use App\Models\Torre;
 use Barryvdh\DomPDF\PDF as DomPDFPDF;
 //use Barryvdh\DomPDF\PDF as DomPDF;
 use Barryvdh\DomPDF\Facade\Pdf as DomPDF;
@@ -572,8 +573,8 @@ class PagoController extends Controller
                 $imageName = time() . '.' . $image->getClientOriginalExtension();
                 $path = $image->storeAs('evidencias', $imageName, 'public');
             }
-
-            $propietarios_for = Propietario::orderBy('id', 'asc')->take(120)->get();
+            //$propietarios_for = Propietario::orderBy('id', 'asc')->take(120)->get();
+            $propietarios_for = Propietario::where('dni', '<>', '00000000')->where('id', '<=', 120)->orderBy('id', 'asc')->get();
             foreach ($propietarios_for as $propietario) {
 
                 $programacionPago = ProgramacionPago::where('id_propietario', $propietario->id)
@@ -701,11 +702,20 @@ class PagoController extends Controller
     }
     public function generatePDF($id)
     {
-        $pago = Pago::with(['propietario','detalles.concepto.nombreMes', 'estado', 'programacion'])->findOrFail($id);
+        $idTorre = env('ID_TORRE_SISTEMA', 6);
+        $juntadirectiva= env('JUNTA_DIRECTIVA', "");
+        $delegada = env('DELEGADA', "");
+        $tesorera = env('TESORERA', "");
+        $torre_trabajo = Torre::where('id',$idTorre)->first();
+        $pago = Pago::with(['propietario','detalles.concepto.nombreMes','detalles', 'estado', 'programacion'])->findOrFail($id);
 
         $data = [
             'pago' => $pago,
-            'detalles' => $pago->detalles
+            'detalles' => $pago->detalles,
+            'torre' =>$torre_trabajo,
+            'juntadirectiva' => $juntadirectiva,
+            'delegada' => $delegada,
+            'tesorera' => $tesorera,
         ];
         $pdf = DomPDF::loadView('pagos.pdf', $data);
         //$pdf = new DomPDF(); $pdf = $pdf->loadView('pagos.pdf', $data);
