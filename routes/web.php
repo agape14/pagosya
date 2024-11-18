@@ -207,6 +207,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/addpermisos', [ConfiguracionController::class, 'agregarPermiso'])->name('addpermisos');
     Route::put('/updusuario/{id}', [ConfiguracionController::class, 'update'])->name('updusuario');
     //Route::resource('gastos', PagoController::class); activeuser
+
+    //Notificacion por whatsapp
+    Route::get('/pagodescargar-recibo/{id}', [PagoController::class, 'descargarRecibo'])->name('descargar.recibo');
+    Route::get('/enviar-confirmacion-pago/{idpago}', [PagoController::class, 'enviarConfirmacionPago'])->name('notificar.recibo');
+
 /*  programacion.storedestroyuser
     Route::get('/tipoconceptos/get/{id}', [TorreController::class, 'getTipoConcepto'])->name('tipoconceptos_get_id');
     Route::delete('/tipoconceptos/delete/{id}', [TorreController::class, 'destroy'])->name('tipoconceptos_delete_id');

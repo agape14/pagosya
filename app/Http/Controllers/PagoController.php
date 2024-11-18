@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
+use Twilio\Rest\Client;
 
 class PagoController extends Controller
 {
@@ -722,5 +723,71 @@ class PagoController extends Controller
         //$pdf = DomPDFPDF::loadView('pagos.pdf', $data);
 
         return $pdf->stream('pago_' . $id . '.pdf');
+    }
+
+    public function generarPDF($id)
+    {
+        $idTorre = env('ID_TORRE_SISTEMA', 6);
+        $juntadirectiva= env('JUNTA_DIRECTIVA', "");
+        $delegada = env('DELEGADA', "");
+        $tesorera = env('TESORERA', "");
+        $torre_trabajo = Torre::where('id',$idTorre)->first();
+        $pago = Pago::with(['propietario','detalles.concepto.nombreMes','detalles', 'estado', 'programacion'])->findOrFail($id);
+
+        $data = [
+            'pago' => $pago,
+            'detalles' => $pago->detalles,
+            'torre' =>$torre_trabajo,
+            'juntadirectiva' => $juntadirectiva,
+            'delegada' => $delegada,
+            'tesorera' => $tesorera,
+        ];
+        return DomPDF::loadView('pagos.pdf', $data);
+    }
+
+    public function descargarRecibo($id)
+    {
+        $pdf = $this->generarPDF($id);
+        // Obtener la fecha y hora actual
+        $fechaHora = Carbon::now()->format('Ymd_His'); // Formato: YYYYMMDD_HHMMSS
+        return $pdf->download('recibo_pago_' . $fechaHora . '.pdf');
+    }
+
+
+
+    public function enviarConfirmacionPago($idpago)
+    {
+        // Generar enlace de descarga del PDF (el archivo debe estar accesible públicamente)
+        $urlReciboPDF = route('descargar.recibo', $idpago); // Ruta que debe permitir la descarga del PDF
+
+        // Número de WhatsApp del destinatario (debe estar en formato internacional)
+        $telefono = 'whatsapp:+51981525451'; // Formato de WhatsApp requerido por Twilio (whatsapp:+código_país + número)
+
+        // Mensaje personalizado con el enlace de descarga del PDF
+        $mensaje = "Hola, hemos recibido tu pago. Puedes descargar tu recibo aquí: {$urlReciboPDF}. ¡Gracias por tu pago!";
+
+        // Instanciar Twilio con las credenciales
+        $twilioSid = env('TWILIO_SID');
+        $twilioAuthToken = env('TWILIO_AUTH_TOKEN');
+        $twilioWhatsappFrom = env('TWILIO_WHATSAPP_FROM');
+
+        $client = new Client($twilioSid, $twilioAuthToken);
+        dd($client);
+        // Enviar el mensaje por WhatsApp usando Twilio
+        try {
+            $client->messages->create(
+                $telefono,
+                [
+                    'from' => $twilioWhatsappFrom,
+                    'body' => $mensaje
+                ]
+            );
+
+            // Retornar una respuesta exitosa
+            return response()->json(['status' => 'success', 'message' => 'Mensaje enviado exitosamente']);
+        } catch (\Exception $e) {
+            // Manejar errores
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
+        }
     }
 }
