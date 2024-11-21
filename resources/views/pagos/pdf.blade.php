@@ -37,7 +37,7 @@
                     </tr>
                     <tr>
                         <td colspan="2" style="text-align: center;background-color: #ECDCFF">
-                            N° {{ str_pad($pago->id, 5, '0', STR_PAD_LEFT) }}-{{ \Carbon\Carbon::parse($pago->fecha)->format('Y') }}
+                            N° {{ str_pad($pago->correlativo, 5, '0', STR_PAD_LEFT) }}-{{ \Carbon\Carbon::parse($pago->fecha)->format('Y') }}
                         </td>
                     </tr>
                 </table >
@@ -114,16 +114,16 @@
     <br>
     <table width="60%">
         <tr>
-            <td><strong>JUNTA DIRECTIVA:</strong> </td>
-            <td>{{ $juntadirectiva }}</td>
+            <td><strong>JUNTA DIRECTIVA:</strong></td>
+            <td>{{ $juntasdirectivas->nombre }}</td>
         </tr>
         <tr>
-            <td><strong>DELEGADA:</strong> </td>
-            <td>{{ $delegada }}</td>
+            <td><strong>DELEGADA:</strong></td>
+            <td>{{ $delegada ?? 'No asignada' }}</td>
         </tr>
         <tr>
-            <td><strong>TESORERA:</strong> </td>
-            <td>{{ $tesorera }}</td>
+            <td><strong>TESORERA:</strong></td>
+            <td>{{ $tesorera ?? 'No asignada' }}</td>
         </tr>
     </table>
 </body>

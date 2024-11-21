@@ -20,10 +20,22 @@
 								Filtro
 							</div>
 							<div class="tools">
-								{{-- <a href="javascript:void(0);" class="expand handle"><i class="fa fa-angle-down"></i></a>  --}}
-                                <button class="btn btn-xs btn-primary" title="Click para Pago Multiple" type="button" data-toggle="modal" data-target="#pagoMultipleModal">
-                                    <i class="fa fa-money" aria-hidden="true"></i> Pago Multiple
-                                </button>
+                                <div class="tools d-flex align-items-center">
+                                    <button class="btn btn-xs btn-primary mr-2" title="Click para Pago Múltiple" type="button" data-toggle="modal" data-target="#pagoMultipleModal">
+                                        <i class="fa fa-money" aria-hidden="true"></i> Pago Múltiple
+                                    </button>
+
+                                    @auth
+                                        @if (auth()->user()->id == 1)
+                                            <form id="corregirPagosForm" class="mt-3">
+                                                @csrf
+                                                <button type="submit" id="corregirPagosBtn" class="btn btn-danger btn-xs">
+                                                    <i class="fa fa-refresh" aria-hidden="true"></i> Corregir Pagoss
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endauth
+                                </div>
 							</div>
 						</div>
 						<div class="card-body  p-2">
@@ -109,7 +121,7 @@
                                             </div>
                                             <div class="custom-file">
                                                 <input type="file" class="custom-file-input" name="evidenciamultiple" id="evidenciamultiple" accept="image/*" required>
-                                                <label class="custom-file-label" for="evidenciamultiple" id="lblImagenmultiple">Seleccionar imagen</label>
+                                                <label class="custom-file-label" for="evidenciamultiple" id="lblImagenmultiple">Seleccionar archivo</label>
                                             </div>
                                             <!--<div class="form-group">
                                                 <label for="monto">Monto</label>
@@ -228,7 +240,7 @@
 											<div class="input-group mb-3">
 												<div class="custom-file">
 													<input type="file" class="custom-file-input" name="evidencia" id="evidencia" accept="image/*" required>
-													<label class="custom-file-label" for="evidencia" id="lblImagen">Seleccionar imagen</label>
+													<label class="custom-file-label" for="evidencia" id="lblImagen">Seleccionar archivo</label>
 												</div>
 											</div>
                                             <div class="form-group mb-0">
@@ -383,7 +395,7 @@
 					$('#txtAddPayTotal').val(data.pagos[0].total);
                     $('#txtNroCuotasPagadas').text( "");
 					$('#evidencia').val('');
-            		$('#evidencia').next('.custom-file-label').text('Seleccionar imagen');
+            		$('#evidencia').next('.custom-file-label').text('Seleccionar archivo');
 
                     //$('#cuotas').removeClass('d-none');
                     //$('#txtCuotas').removeClass('d-none');
@@ -416,7 +428,7 @@
 					$('#txtAddPayTotal').val(data.pagos.total);
                     $('#txtNroCuotasPagadas').text( " - Pagado: "+data.pagos.estado_cuota);
 					$('#evidencia').val('');
-            		$('#evidencia').next('.custom-file-label').text('Seleccionar imagen');
+            		$('#evidencia').next('.custom-file-label').text('Seleccionar archivo');
 
                     // Resetear visibilidad de los campos
                     //$('#cuotas').addClass('d-none');
@@ -516,7 +528,7 @@
 			if(!((fileType == match[0]) || (fileType == match[1]) || (fileType == match[2]) || (fileType == match[3]))) {
 				swal("Error!", 'Seleccione una imagen válida (JPEG/JPG/PNG/GIF).', "error");
 				$('#evidencia').val('');
-            	$('#evidencia').next('.custom-file-label').text('Seleccionar imagen');
+            	$('#evidencia').next('.custom-file-label').text('Seleccionar archivo');
 			}else{
 				var fileName = file.name;
                 $(this).next('.custom-file-label').text(fileName);
@@ -530,7 +542,7 @@
 			if(!((fileType == match[0]) || (fileType == match[1]) || (fileType == match[2]) || (fileType == match[3]))) {
 				swal("Error!", 'Seleccione una imagen válida (JPEG/JPG/PNG/GIF).', "error");
 				$('#evidenciamultiple').val('');
-            	$('#evidenciamultiple').next('.custom-file-label').text('Seleccionar imagen');
+            	$('#evidenciamultiple').next('.custom-file-label').text('Seleccionar archivo');
 			}else{
 				var fileName = file.name;
                 $(this).next('.custom-file-label').text(fileName);
@@ -630,7 +642,7 @@
 
 		function limpiarFormEvidencia(){
 			$('#pagoForm')[0].reset();
-        	$('#lblImagen').text('Seleccionar imagen');
+        	$('#lblImagen').text('Seleccionar archivo');
 			$('#AddPagoModal').modal('hide');
 		}
 
@@ -644,5 +656,33 @@
 			$('#pdfModal').modal('show');
 
 		});
+
+        $('#corregirPagosForm').on('submit', function (e) {
+            e.preventDefault(); // Evita el envío predeterminado del formulario
+            let form = $(this);
+            let url = form.attr('action'); // Obtiene la URL de la acción del formulario
+
+            $.ajax({
+                url: '{{ route('corregir.pagos') }}',
+                type: 'POST',
+                data: form.serialize(), // Serializa los datos del formulario
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire('Actualizacion Correcta!', response.success, 'success');
+                    } else {
+                        console.log('Ocurrió un error:', response.error);
+                        Swal.fire('Error', 'No se pudo realizar la operación. ' +response.error, 'error');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log('Ocurrió un error:', xhr);
+                    console.log('Status:', status);
+                    console.log('Error:', error);
+
+                    Swal.fire('Error', 'No se pudo realizar la operación. Status: ' + status + ', Error: ' + error, 'error');
+
+                }
+            });
+        });
 	});
 </script>

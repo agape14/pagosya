@@ -73,6 +73,20 @@
                         </ul>
                     </li>
                     @endif
+                    @if(in_array(config('permisos.ingresos'), session('permisos_usuario')))
+                    <li><a href="{!! url('/ingresos'); !!}" class="ai-icon" aria-expanded="false">
+                            <i class="flaticon-381-internet"></i>
+                            <span class="nav-text">Ingresos</span>
+                        </a>
+                    </li>
+                    @endif
+                    @if(in_array(config('permisos.reportes'), session('permisos_usuario')))
+                    <li><a href="#" class="ai-icon" aria-expanded="false">
+                            <i class="flaticon-381-internet"></i>
+                            <span class="nav-text">Reportes</span>
+                        </a>
+                    </li>
+                    @endif
                     {{--<li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">
 							<i class="flaticon-381-networking"></i>
 							<span class="nav-text">Dashboard</span>

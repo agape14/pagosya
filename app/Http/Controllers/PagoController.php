@@ -19,6 +19,8 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Twilio\Rest\Client;
+use App\Models\JuntaDirectiva;
+use App\Models\Acumulador;
 
 class PagoController extends Controller
 {
@@ -576,6 +578,10 @@ class PagoController extends Controller
             }
             //$propietarios_for = Propietario::orderBy('id', 'asc')->take(120)->get();
             $propietarios_for = Propietario::where('dni', '<>', '00000000')->where('id', '<=', 120)->orderBy('id', 'asc')->get();
+            $acumulador = Acumulador::find(1);
+            $ultimoCorrelativo = $acumulador ? $acumulador->correlativo : 0;
+            //$nuevoCorrelativo = $ultimoCorrelativo + 1;
+
             foreach ($propietarios_for as $propietario) {
 
                 $programacionPago = ProgramacionPago::where('id_propietario', $propietario->id)
@@ -607,6 +613,9 @@ class PagoController extends Controller
                     $pago->estado_id = 3; // "PAGO EN PARTES" o "PAGADO"
                     $pago->activo = 1;
                     $pago->id_programacion = $programacionPago->id;
+                    $pago->correlativo = $nuevoCorrelativo++;
+                    $pago->id_junta = $juntaActiva->id;
+
                     $pago->save();
 
                     // Detalles del pago
@@ -628,7 +637,8 @@ class PagoController extends Controller
                 }
             }
 
-
+            $ultimoCorrelativo = $nuevoCorrelativo - 1;
+            Acumulador::actualizarCorrelativo(1, $ultimoCorrelativo);
             DB::commit();
 
             return response()->json(['success' => 'Pago múltiple registrado correctamente.'], 200);
@@ -651,10 +661,18 @@ class PagoController extends Controller
 
             // Actualizar la tabla programacion_pago y programacion_pago_detalles
             if ($request->estadoIdEvidencia == 2) {
+                $juntaActiva = JuntaDirectiva::where('estado', 1)->first();
                 $pago = Pago::findOrFail($request->pagoIdEvidencia);
                 $pago->estado_id = 3;
                 $pago->actualizado_por = auth()->id();
+                $acumulador = Acumulador::find(1);
+                $ultimoCorrelativo = $acumulador ? $acumulador->correlativo : 0;
+                $nuevoCorrelativo = $ultimoCorrelativo + 1;
+                $pago->correlativo = $nuevoCorrelativo;
+                $pago->id_junta = $juntaActiva->id;
                 $pago->save();
+
+                Acumulador::actualizarCorrelativo(1, $nuevoCorrelativo);
 
                 PagoDetalle::where('id_pago', $request->pagoIdEvidencia)
                     ->update(['estado_id' => 3,'actualizado_por' => auth()->id()]);
@@ -708,6 +726,22 @@ class PagoController extends Controller
         $delegada = env('DELEGADA', "");
         $tesorera = env('TESORERA', "");
         $torre_trabajo = Torre::where('id',$idTorre)->first();
+
+
+        $juntas_directivas = JuntaDirectiva::with([
+            'detalles', // Relación directa con JuntaDirectivaDet
+            'detalles.cargo', // Relación del detalle con Cargo
+            'detalles.propietario' // Relación del detalle con Propietario
+        ])->where('estado', 1)->first();
+
+        $delegada = $juntas_directivas->detalles
+            ->where('cargo.nombre', 'Delegada')
+            ->first()?->nombres;
+
+        $tesorera = $juntas_directivas->detalles
+            ->where('cargo.nombre', 'Tesorera')
+            ->first()?->nombres;
+
         $pago = Pago::with(['propietario','detalles.concepto.nombreMes','detalles', 'estado', 'programacion'])->findOrFail($id);
 
         $data = [
@@ -715,6 +749,9 @@ class PagoController extends Controller
             'detalles' => $pago->detalles,
             'torre' =>$torre_trabajo,
             'juntadirectiva' => $juntadirectiva,
+            'delegada' => $delegada,
+            'tesorera' => $tesorera,
+            'juntasdirectivas' => $juntas_directivas,
             'delegada' => $delegada,
             'tesorera' => $tesorera,
         ];
@@ -788,6 +825,53 @@ class PagoController extends Controller
         } catch (\Exception $e) {
             // Manejar errores
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function corregirPagos()
+    {
+        if (auth()->user()->id !== 1) {
+            return response()->json(['error' => 'No autorizado.']);
+        }
+
+        // Obtener la junta activa
+        $juntaActiva = JuntaDirectiva::where('estado', 1)->first();
+
+        if (!$juntaActiva) {
+            return response()->json(['error' => 'No hay una junta directiva activa.']);
+        }
+
+        try {
+            // Obtener los pagos en estado activo
+            $pagos = Pago::where('estado_id', 3)
+            ->where(function($query) {
+                $query->whereNull('correlativo')
+                      ->orWhere('correlativo', '');
+            })
+            ->orderBy('id')->get();
+
+            // Verificar si no se encontraron pagos
+            if ($pagos->isEmpty()) {
+                return response()->json(['error' => 'No se encontraron pagos con correlativo vacío o nulo.']);
+            }
+
+            // Inicia el correlativo desde 1
+            $correlativo = 1;
+
+            foreach ($pagos as $pago) {
+                // Actualizar id_junta y correlativo
+                $pago->id_junta = $juntaActiva->id;
+                $pago->correlativo = $correlativo++;
+                $pago->save();
+            }
+            // Obtener el último correlativo insertado
+            $ultimoCorrelativo = $correlativo - 1;
+
+            // Actualizar el acumulador para el código 1 (recibos)
+            Acumulador::actualizarCorrelativo(1, $ultimoCorrelativo);
+            return response()->json(['success' => 'Pagos actualizados correctamente.']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Ocurrió un error: ' . $e->getMessage()]);
         }
     }
 }

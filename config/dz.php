@@ -239,6 +239,15 @@ return [
 							'vendor/pickadate/themes/default.css',
 							'vendor/pickadate/themes/default.date.css',
 						],
+                'ingresos_index' => [
+					'vendor/select2/css/select2.min.css',
+					'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
+					'vendor/sweetalert2/dist/sweetalert2.min.css',
+					'vendor/datatables/css/jquery.dataTables.min.css',
+
+							'vendor/pickadate/themes/default.css',
+							'vendor/pickadate/themes/default.date.css',
+						],
 				'uc_nestable' => [
               'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
 							'vendor/nestable2/css/jquery.nestable.min.css',
@@ -716,6 +725,22 @@ return [
 				'js/custom.min.js',
 				'js/deznav-init.js',
 					],
+            'ingresos_index' => [
+				'vendor/select2/js/select2.full.min.js',
+				'js/plugins-init/select2-init.js',
+				'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
+				'vendor/sweetalert2/dist/sweetalert2.min.js',
+				'vendor/datatables/js/jquery.dataTables.min.js',
+				'js/plugins-init/datatables.init.js',
+
+				'vendor/moment/moment.min.js',
+				'vendor/pickadate/picker.js',
+				'vendor/pickadate/picker.date.js',
+				'js/plugins-init/pickadate-init.js',
+
+				'js/custom.min.js',
+				'js/deznav-init.js',
+					],
 				'uc_nestable' => [
             'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
             'vendor/nestable2/js/jquery.nestable.min.js',
@@ -853,7 +878,7 @@ return [
             'js/custom.min.js',
             'js/deznav-init.js',
 				]
-					
+
 			]
 		],
 	]

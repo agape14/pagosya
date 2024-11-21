@@ -10,6 +10,7 @@ use App\Http\Controllers\ProgramacionPagoController;
 use App\Http\Controllers\TorreController;
 use App\Http\Controllers\PropietarioController;
 use App\Http\Controllers\TipoConceptoController;
+use App\Http\Controllers\IngresoController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -183,6 +184,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/gastos/get/{id}', [GastoController::class, 'show'])->name('gastos_get_id');
     Route::delete('/gastos/delete/{id}', [GastoController::class, 'destroy'])->name('gastos_delete_id');
 
+    Route::get('/ingresos', [IngresoController::class, 'ingresos_index'])->name('ingresos');
+    Route::get('/ingresos/data', [IngresoController::class, 'getTblIngresos'])->name('ingresos.data');
+    Route::post('/ingresos-evidencia', [IngresoController::class, 'store'])->name('ingresos.evidencia');
+    Route::get('/ingresos/get/{id}', [IngresoController::class, 'show'])->name('ingresos');
+    Route::delete('/ingresos/delete/{id}', [IngresoController::class, 'destroy'])->name('ingresos_delete_id');
+
     Route::get('/panel', [PanelController::class, 'panel_index'])->name('panel');
     Route::get('/gesestadospanel/{concepto_id}', [PanelController::class, 'obtenerEstado'])->name('gesestadospanel');
     Route::get('/getdatosxconcepto', [PanelController::class, 'obtenerDatosPorConcepto'])->name('obtenerDatosPorConcepto');
@@ -220,4 +227,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('propietarios', PropietarioController::class);
     Route::resource('tipos_concepto', TipoConceptoController::class);*/
+
+    Route::post('/corregir-pagos', [PagoController::class, 'corregirPagos'])->name('corregir.pagos');
+
 });
