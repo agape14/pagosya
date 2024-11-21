@@ -34,7 +34,7 @@
                                     <div class="col-sm-12 col-md-12  px-0">
                                         <!-- Listado de deudas -->
                                         <h4>Detalles de su deuda:</h4>
-                                        <table class="table   table-hover">
+                                        <table class="table   table-hover" id="tblEstadoCuenta">
                                             <thead class="table-primary">
                                               <tr>
                                                 <th scope="col">#</th>
@@ -42,6 +42,7 @@
                                                 <th scope="col">Concepto</th>
                                                 <th scope="col">Total</th>
                                                 <th scope="col">Estado</th>
+                                                <th scope="col">...</th>
                                               </tr>
                                             </thead>
                                             <tbody>
@@ -58,6 +59,9 @@
                                                         </td>
                                                         <td class="text-right text-primary">{{ $detdeuda->total }}</td>
                                                         <td>{{ $detdeuda->estado }}</td>
+                                                        @if($detdeuda->idestado==3)
+                                                            <td><a href="javascript:void(0)" data-id="{{ $detdeuda->idpago }}"  class="btn btn-outline-success shadow btn-sm sharp mr-1 verPdfPago"><i class="fa fa-print fa-2x"></i></a></td>
+                                                        @endif
                                                       </tr>
                                                     @php
                                                         $contador++; // Incrementar el contador
@@ -73,6 +77,22 @@
                                                 </tr>
                                             </tfoot>
                                         </table>
+
+                                        <div class="modal fade bd-example-modal-lg" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="pdfModalLabel">Impresión del Pago</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <iframe id="pdfIframe" src="" width="100%" height="600px"></iframe>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -295,5 +315,16 @@
 			var chartDataCircle1 = new ApexCharts(document.querySelector('#chartDataCircle'), optionsDataCircle);
 			chartDataCircle1.render();
 		};
+
+        $('#tblEstadoCuenta').on('click', '.verPdfPago', function() {
+			var pagoId = $(this).data('id');
+			var idestado = $(this).data('idestado');
+			var url = '{{ route("pagos.pdf", ":id") }}';
+			url = url.replace(':id', pagoId);
+
+			$('#pdfIframe').attr('src', url);
+			$('#pdfModal').modal('show');
+
+		});
 	});
 </script>

@@ -69,14 +69,16 @@ class PanelController extends Controller
         foreach ($detdeudas as $deuda) {
             $pago = Pago::where('id_programacion', $deuda->id)->first();
             $observacion = null;
-
+            $idpago=null;
             if ($pago) {
+                $idpago=$pago->id;
                 $pago_detalle_obs = PagoDetalle::where('id_pago', $pago->id)->pluck('observacion');
                 if ($pago_detalle_obs->isNotEmpty()) {
                     $observacion = $pago_detalle_obs->implode('/ ');
                 }
             }
             $deuda->observacion = $observacion;
+            $deuda->idpago = $idpago;
             $detdeudas_con_observacion->push($deuda);
         }
 
