@@ -43,7 +43,9 @@
 													<h5 class="mb-1">INGRESOS <small class="text-muted">|</small></h5>
 													<p class="mb-1">Para visualizar los ingresos del mes, debe dar click en el boton [Ver Ingresos]</p>
 													<a href="javascript:void(0);" data-toggle="modal" data-target="#AddVerIngresosModal" class="btn btn-success btn-sm shadow">Ver Ingresos</a>
+                                                    @if($totalPagos!=0)
                                                     <br> Total Pagos: <small class="text-muted">S/.</small> {{ number_format($totalPagos, 2) }}
+                                                    @endif
                                                     <br> Total Ingresos: <small class="text-muted">S/.</small> {{ number_format($totalIngresos, 2) }}
                                                     <br> Intereses Bancarios: <small class="text-muted">S/.</small> {{ number_format($saldoFinalInteres, 2) }}
 												</div>
