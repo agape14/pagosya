@@ -178,6 +178,11 @@ return [
 					'vendor/sweetalert2/dist/sweetalert2.min.css',
 								  'vendor/datatables/css/jquery.dataTables.min.css',
 					  ],
+                'intbancario_index' => [
+					'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
+					'vendor/sweetalert2/dist/sweetalert2.min.css',
+								  'vendor/datatables/css/jquery.dataTables.min.css',
+					  ],
 				'usuarios_index' => [
 				'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
 				'vendor/sweetalert2/dist/sweetalert2.min.css',
@@ -225,6 +230,7 @@ return [
 						],
 				'panel_index' => [
 						'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
+                        'vendor/toastr/css/toastr.min.css',
 						'vendor/jqvmap/css/jqvmap.min.css',
 						'vendor/chartist/css/chartist.min.css',
 						'https://cdn.lineicons.com/2.0/LineIcons.css',
@@ -321,6 +327,15 @@ return [
 				'widget_basic' => [
               'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
 							'vendor/chartist/css/chartist.min.css',
+				],
+                'noticias_index' => [
+                    'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
+					'vendor/chartist/css/chartist.min.css',
+                    'vendor/select2/css/select2.min.css',
+                    'vendor/sweetalert2/dist/sweetalert2.min.css',
+					'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
+					'vendor/sweetalert2/dist/sweetalert2.min.css',
+					'vendor/datatables/css/jquery.dataTables.min.css',
 				],
 			],
 			'js' => [
@@ -624,6 +639,14 @@ return [
 				'js/custom.min.js',
 				'js/deznav-init.js',
 					],
+            'intbancario_index' => [
+				'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
+				'vendor/sweetalert2/dist/sweetalert2.min.js',
+				'vendor/datatables/js/jquery.dataTables.min.js',
+				'js/plugins-init/datatables.init.js',
+				'js/custom.min.js',
+				'js/deznav-init.js',
+					],
 			'usuarios_index' => [
 				'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
 				'vendor/sweetalert2/dist/sweetalert2.min.js',
@@ -700,6 +723,7 @@ return [
 					],
 			'panel_index' => [
 				'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
+                'vendor/toastr/js/toastr.min.js',
 				'vendor/apexchart/apexchart.js',
 				'js/dashboard/portfolio.js',
 				'vendor/chart.js/Chart.bundle.min.js',
@@ -861,23 +885,42 @@ return [
             'js/custom.min.js',
             'js/deznav-init.js',
 				],
-				'widget_basic' => [
-            'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
-            'vendor/chartist/js/chartist.min.js',
-            'vendor/chartist-plugin-tooltips/js/chartist-plugin-tooltip.min.js',
-            'vendor/flot/jquery.flot.js',
-            'vendor/flot/jquery.flot.pie.js',
-            'vendor/flot/jquery.flot.resize.js',
-            'vendor/flot-spline/jquery.flot.spline.min.js',
-            'vendor/jquery-sparkline/jquery.sparkline.min.js',
-            'js/plugins-init/sparkline-init.js',
-            'vendor/peity/jquery.peity.min.js',
-            'js/plugins-init/piety-init.js',
-            'vendor/chart.js/Chart.bundle.min.js',
-            'js/plugins-init/widgets-script-init.js',
-            'js/custom.min.js',
-            'js/deznav-init.js',
-				]
+			'widget_basic' => [
+                'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
+                'vendor/chartist/js/chartist.min.js',
+                'vendor/chartist-plugin-tooltips/js/chartist-plugin-tooltip.min.js',
+                'vendor/flot/jquery.flot.js',
+                'vendor/flot/jquery.flot.pie.js',
+                'vendor/flot/jquery.flot.resize.js',
+                'vendor/flot-spline/jquery.flot.spline.min.js',
+                'vendor/jquery-sparkline/jquery.sparkline.min.js',
+                'js/plugins-init/sparkline-init.js',
+                'vendor/peity/jquery.peity.min.js',
+                'js/plugins-init/piety-init.js',
+                'vendor/chart.js/Chart.bundle.min.js',
+                'js/plugins-init/widgets-script-init.js',
+                'js/custom.min.js',
+                'js/deznav-init.js',
+            ],
+            'noticias_index' => [
+                'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
+                'vendor/chartist-plugin-tooltips/js/chartist-plugin-tooltip.min.js',
+                'vendor/flot-spline/jquery.flot.spline.min.js',
+                'vendor/jquery-sparkline/jquery.sparkline.min.js',
+                'vendor/sweetalert2/dist/sweetalert2.min.js',
+                'vendor/select2/js/select2.full.min.js',
+				'js/plugins-init/select2-init.js',
+				'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
+				'vendor/sweetalert2/dist/sweetalert2.min.js',
+				'vendor/datatables/js/jquery.dataTables.min.js',
+				'js/plugins-init/datatables.init.js',
+
+                'js/plugins-init/sparkline-init.js',
+                'js/plugins-init/widgets-script-init.js',
+                'js/custom.min.js',
+                'js/deznav-init.js',
+
+			]
 
 			]
 		],

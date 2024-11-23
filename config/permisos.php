@@ -19,4 +19,6 @@ return [
     'eliminar' => 16,
     'ingresos' => 17,
     'reportes' => 18,
+    'intbancario' => 19,
+    'noticias' => 20,
 ];

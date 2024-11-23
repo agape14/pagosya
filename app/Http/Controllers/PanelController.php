@@ -6,6 +6,7 @@ use App\Models\Concepto;
 use App\Models\Pago;
 use App\Models\PagoDetalle;
 use App\Models\Propietario;
+use App\Models\Acumulador;
 use App\Models\ProgramacionPago;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -81,8 +82,26 @@ class PanelController extends Controller
             $deuda->idpago = $idpago;
             $detdeudas_con_observacion->push($deuda);
         }
-
         return view('panel.index', compact('page_title', 'page_description','action','logo','logoText', 'current_year','conceptos','contdeuda','detdeudas','detdeudas_con_observacion'));
+    }
+
+    public function obtenerResumenGastosIngresos()
+    {
+        $acumuladores = Acumulador::whereIn('id', [2, 3, 4])->get();
+        // Obtener los valores de ingresos y egresos
+        $ingresos = $acumuladores->where('id', 2)->first()?->monto ?? 0;
+        $egresos = $acumuladores->where('id', 3)->first()?->monto ?? 0;
+        $verpopup= $acumuladores->where('id', 4)->first()?->correlativo ?? 0; //0:no se ve; 1: si se ve
+        // Calcular el saldo
+        $saldo = $ingresos - $egresos;
+
+        // Retornar los datos en formato JSON
+        return response()->json([
+            'ingresos' => $ingresos,
+            'egresos' => $egresos,
+            'saldo' => $saldo,
+            'verpopup'=>$verpopup,
+        ]);
     }
 
     public function obtenerDatosPorConcepto(Request $request)

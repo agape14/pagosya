@@ -31,6 +31,7 @@
                             @endforeach
                         </select>
                         <button id="guardar-permisos-btn"  class="btn btn-primary ml-auto" >Actualizar Permisos</button>
+                        <button id="habilitapopup"  class="btn btn-success ml-auto" >Activar / Desactivar PopUp</button>
                         <ul id="arbol-permisos">
                             @foreach($permisos as $permiso)
                                 <li>
@@ -49,14 +50,14 @@
                                 </li>
                             @endforeach
                         </ul>
-                       
+
                     </div>
 
                 </div>
             </div>
         </div>
     </div>
-    
+
 </div>
 @endsection
     <script type="module">
@@ -84,7 +85,7 @@
                         }
                     });
                 }
-                
+
             });
 
             // Función para actualizar los checkboxes del árbol
@@ -126,5 +127,41 @@
                 });
             });
 
+            $('#habilitapopup').click(function() {
+                // Enviar datos mediante AJAX
+                swal({
+                    title: "¿Estás seguro?",
+                    text: "¡Actualizando la visualizacion de popup!",
+                    type: "warning",
+                    showCancelButton: !0,
+                    confirmButtonColor: "#6418C3",
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: "Sí, actualizar",
+                    cancelButtonText: "Cancelar",
+                    closeOnConfirm: !1,
+                    closeOnCancel: !1
+                }).then((result) => {
+                    if (result.value) {
+                        $.ajax({
+                            url: '/habilitapopup',
+                            type: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(response) {
+                                swal("Actualizado!", response.success, "success")
+                                console.log('Popup des/habilitado exitosamente.');
+                            },
+                            error: function(xhr, status, error) {
+                                swal("Error!", "Error al des/habilitado Popup: "+error, "error")
+                                console.error('Error al des/habilitado Popup:', error);
+                            }
+                        });
+
+                    }else{
+                        swal("Cancelado!", "Se cancelo la accion", "error")
+                    }
+                })
+            });
         });
     </script>

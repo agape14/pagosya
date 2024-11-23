@@ -23,19 +23,19 @@ class ConceptoController extends Controller
     {
         $page_title = 'Tipos Concepto';
         $page_description = 'Some description for the page';
-		
+
 		$action = __FUNCTION__;
 
         $conceptos = Concepto::all();
         $tipos_concepto = TipoConcepto::all();
-        
+
         // Leer el archivo JSON de meses
         $meses = Mes::all();
         $anios = Anio::orderBy('anio', 'asc')->get();
         return view('conceptos.index', compact('conceptos', 'tipos_concepto','meses','anios', 'page_title', 'page_description','action'));
     }
 
-    
+
     public function getConceptos()
     {
         $conceptos = Concepto::select(['id', 'id_tipo_concepto', 'descripcion_concepto', 'mes', 'anio','activo'])->orderBy('id', 'asc')->get();
@@ -63,7 +63,7 @@ class ConceptoController extends Controller
                 } else {
                     return '<span class="badge light badge-danger">Inactivo</span>';
                 }
-                
+
             })
             ->addColumn('action', function ($row) {
                 $btn = '<div class="d-flex">';
@@ -103,15 +103,15 @@ class ConceptoController extends Controller
          // Verificar y ajustar los valores de mes y anio si no son válidos
         $mes = $request->input('mes');
         $anio = $request->input('anio');
-        
+
         if (!is_numeric($mes) || $mes < 1 || $mes > 12) {
             $mes = 0;
         }
-        
+
         if (!is_numeric($anio) || $anio < 1900 || $anio > (date('Y') + 1)) {
             $anio = 0;
         }
-        $concepto=Concepto::create([ 
+        $concepto=Concepto::create([
             'id_tipo_concepto' => $request->input('id_tipo_concepto'),
             'descripcion_concepto' => $request->input('descripcion_concepto'),
             'mes' => $mes,
@@ -175,7 +175,7 @@ class ConceptoController extends Controller
         $this->recordAudit('Editado', 'Concepto editado: ' . $concepto->id);
         return response()->json(['success' => 'Concepto actualizado correctamente.']);
         //return redirect()->route('conceptos')->with('success', 'Concepto actualizado correctamente.');
-    
+
     }
 
     /**

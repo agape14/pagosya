@@ -99,7 +99,7 @@
                                     <button type="submit" class="btn btn-primary">Guardar</button>
                                 </div>
                             </form>
-                            
+
                         </div>
                         </div>
                     </div>
@@ -108,7 +108,7 @@
             </div>
         </div>
     </div>
-    
+
 </div>
 @endsection
     <script type="module">
@@ -187,7 +187,7 @@
                                 $('#tblConceptos').DataTable().ajax.reload();
                             }
                         });
-                        
+
                     }else{
                         swal("Cancelado!", "Se cancelo la accion", "error")
                     }

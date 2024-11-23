@@ -32,6 +32,9 @@
                             @if(in_array(config('permisos.propietarios'), session('permisos_usuario')))
                             <li><a href="{!! url('/propietarios'); !!}">Propietarios</a></li>
                             @endif
+                            @if(in_array(config('permisos.intbancario'), session('permisos_usuario')))
+                            <li><a href="{!! url('/intbancario'); !!}">Interes Bancario</a></li>
+                            @endif
                         </ul>
                     </li>
                     @endif
@@ -87,6 +90,12 @@
                         </a>
                     </li>
                     @endif
+
+                    <li><a href="{!! url('/noticias'); !!}" class="ai-icon" aria-expanded="false">
+                            <i class="flaticon-381-television"></i>
+                            <span class="nav-text">Noticias</span>
+                        </a>
+                    </li>
                     {{--<li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">
 							<i class="flaticon-381-networking"></i>
 							<span class="nav-text">Dashboard</span>

@@ -271,6 +271,19 @@ class GastoController extends Controller
         return view('gastos.show', compact('gasto'));*/
     }
 
+    public function showverpdf($id)
+    {
+        $ingreso = Gasto::select('evidencia')
+            ->where('id', $id)
+            ->where('activo', 1)
+            ->firstOrFail();
+
+        // Construir la URL completa de la evidencia
+        $evidenciaUrl = asset('storage/' . $ingreso->evidencia);
+
+        return response()->json(['evidencia_url' => $evidenciaUrl]);
+    }
+
     public function edit($id)
     {
         $gasto = Gasto::findOrFail($id);

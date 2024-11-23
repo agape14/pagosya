@@ -8,6 +8,7 @@ use App\Models\PermisoUsuario;
 use App\Models\Torre;
 use App\Models\Usuario;
 use App\Models\Propietario;
+use App\Models\Acumulador;
 use App\Traits\RecordsAudit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -207,6 +208,28 @@ class ConfiguracionController extends Controller
         }
         return response()->json(['success' => 'Permisos agregado correctamente.']);
 
+    }
+
+    public function habilitaPopup(Request $request)
+    {
+        try {
+            $acumulador = Acumulador::findOrFail(4);
+            // Alternar el valor de correlativo (1 -> 0, 0 -> 1)
+            $nuevoEstado = $acumulador->correlativo == 1 ? 0 : 1;
+            $mensaje = $nuevoEstado == 1
+                ? "Se activó la visualización del popup."
+                : "Se desactivó la visualización del popup.";
+
+            // Actualizar el valor y guardar
+            $acumulador->correlativo = $nuevoEstado;
+            $acumulador->save();
+
+            // Retornar el mensaje de éxito
+            return response()->json(['success' => $mensaje]);
+        } catch (\Exception $e) {
+            // Manejar errores inesperados
+            return response()->json(['error' => 'Ocurrió un error al actualizar el estado del popup.']);
+        }
     }
 
     /**

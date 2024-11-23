@@ -270,6 +270,19 @@ class IngresoController extends Controller
         return view('ingresos.show', compact('ingreso'));*/
     }
 
+    public function showverpdf($id)
+    {
+        $ingreso = Ingreso::select('evidencia')
+            ->where('id', $id)
+            ->where('activo', 1)
+            ->firstOrFail();
+
+        // Construir la URL completa de la evidencia
+        $evidenciaUrl = asset('storage/' . $ingreso->evidencia);
+
+        return response()->json(['evidencia_url' => $evidenciaUrl]);
+    }
+
     public function edit($id)
     {
         $ingreso = Ingreso::findOrFail($id);

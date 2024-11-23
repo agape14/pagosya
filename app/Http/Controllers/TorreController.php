@@ -15,7 +15,7 @@ class TorreController extends Controller
     {
         $page_title = 'Torres';
         $page_description = 'Some description for the page';
-		
+
 		$action = __FUNCTION__;
 
         $torres = Torre::all();
@@ -44,7 +44,7 @@ class TorreController extends Controller
 
     public function store(Request $request)
     {
-        
+
         $request->validate([
             'nombre_torre' => 'required|string|max:5',
         ]);
@@ -55,7 +55,7 @@ class TorreController extends Controller
         $this->recordAudit('Nuevo', 'Torre creado: ' . $torre->id);
         return redirect()->route('torres')->with('success', 'Torre creada correctamente.');
     }
-    
+
     public function getTorre($id)
     {
         $torre = Torre::find($id);
@@ -77,7 +77,7 @@ class TorreController extends Controller
         $request->validate([
             'nombre_torre' => 'required|string|max:5',
         ]);
-    
+
         $torre = Torre::findOrFail($id);
         $torre->nombre_torre = $request->nombre_torre;
         $torre->creado_por = auth()->id(); // Ajustar según sea necesario

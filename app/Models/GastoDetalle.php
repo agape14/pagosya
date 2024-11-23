@@ -17,4 +17,8 @@ class GastoDetalle extends Model
     {
         return $this->belongsTo(Gasto::class, 'id_gasto');
     }
+    public function concepto()
+    {
+        return $this->belongsTo(Concepto::class, 'id_concepto');
+    }
 }

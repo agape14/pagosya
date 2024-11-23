@@ -11,6 +11,9 @@ use App\Http\Controllers\TorreController;
 use App\Http\Controllers\PropietarioController;
 use App\Http\Controllers\TipoConceptoController;
 use App\Http\Controllers\IngresoController;
+use App\Http\Controllers\InteresBancarioController;
+use App\Http\Controllers\NoticiasController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -128,7 +131,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/widget-basic', 'App\Http\Controllers\ChrevadminController@widget_basic');
 
 
+    Route::get('/noticias', [NoticiasController::class, 'noticias_index'])->name('noticias');
+    Route::post('/acumuladores/actualizartotales', [NoticiasController::class, 'actualizarTotales'])->name('acumuladores.actualizarTotales');
 
+
+    Route::get('/intbancario', [InteresBancarioController::class, 'intbancario_index'])->name('intbancario');
+    Route::get('/intbancario/get', [InteresBancarioController::class, 'getIntbancarios'])->name('intbancario_get');
+    Route::post('/addintbancario', [InteresBancarioController::class, 'store'])->name('addintbancario');
+    Route::get('/intbancario/get/{id}', [InteresBancarioController::class, 'getIntbancario'])->name('intbancario_get_id');
+    Route::put('/editintbancario/{id}', [InteresBancarioController::class, 'update'])->name('intbancario_edit');
+    Route::delete('/intbancario/delete/{id}', [InteresBancarioController::class, 'destroy'])->name('intbancario_delete_id');
 
     Route::get('/torres', [TorreController::class, 'torres_index'])->name('torres');
     Route::get('/torres/get', [TorreController::class, 'getTorres'])->name('torres_get');
@@ -183,17 +195,22 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/gastos-evidencia', [GastoController::class, 'store'])->name('gastos.evidencia');
     Route::get('/gastos/get/{id}', [GastoController::class, 'show'])->name('gastos_get_id');
     Route::delete('/gastos/delete/{id}', [GastoController::class, 'destroy'])->name('gastos_delete_id');
+    Route::get('/gastosverpdf/{id}', [GastoController::class, 'showverpdf'])->name('gastosverpdf.show');
 
     Route::get('/ingresos', [IngresoController::class, 'ingresos_index'])->name('ingresos');
     Route::get('/ingresos/data', [IngresoController::class, 'getTblIngresos'])->name('ingresos.data');
     Route::post('/ingresos-evidencia', [IngresoController::class, 'store'])->name('ingresos.evidencia');
     Route::get('/ingresos/get/{id}', [IngresoController::class, 'show'])->name('ingresos_get_id');
     Route::delete('/ingresos/delete/{id}', [IngresoController::class, 'destroy'])->name('ingresos_delete_id');
+    Route::get('/ingresosverpdf/{id}', [IngresoController::class, 'showverpdf'])->name('ingresosverpdf.show');
+
 
     Route::get('/panel', [PanelController::class, 'panel_index'])->name('panel');
     Route::get('/gesestadospanel/{concepto_id}', [PanelController::class, 'obtenerEstado'])->name('gesestadospanel');
     Route::get('/getdatosxconcepto', [PanelController::class, 'obtenerDatosPorConcepto'])->name('obtenerDatosPorConcepto');
     Route::get('/getdatosporcentconcepto', [PanelController::class, 'obtenerDatosPorcentajeConcepto'])->name('obtenerDatosPorcentajeConcepto');
+    Route::get('/resumen-gastos-ingresos', [PanelController::class, 'obtenerResumenGastosIngresos'])->name('obtenerResumenGastosIngresos');
+
 
     Route::get('/usuarios', [PanelController::class, 'panel_index'])->name('panel');
     Route::get('/cuenta', [ConfiguracionController::class, 'perfil_index'])->name('cuenta');
@@ -213,6 +230,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/getpermisos/{usuario}', [ConfiguracionController::class, 'obtenerPermisosUsuario'])->name('getpermisosxuser');
     Route::post('/addpermisos', [ConfiguracionController::class, 'agregarPermiso'])->name('addpermisos');
     Route::put('/updusuario/{id}', [ConfiguracionController::class, 'update'])->name('updusuario');
+    Route::post('/habilitapopup', [ConfiguracionController::class, 'habilitaPopup'])->name('habilita_popup');
     //Route::resource('gastos', PagoController::class); activeuser
 
     //Notificacion por whatsapp

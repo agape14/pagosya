@@ -326,5 +326,48 @@
 			$('#pdfModal').modal('show');
 
 		});
+        muestraResumenGastosIngresos();
+        function muestraResumenGastosIngresos() {
+            $.ajax({
+                url: '{{ route("obtenerResumenGastosIngresos") }}',
+                method: 'GET',
+                success: function(response) {
+                    const ingresos = parseFloat(response.ingresos || 0).toFixed(2);
+                    const egresos = parseFloat(response.egresos || 0).toFixed(2);
+                    const saldo = parseFloat(response.saldo || 0).toFixed(2);
+                    const verpopup = parseInt(response.verpopup);
+                    // Construir el mensaje del toastr
+                    if(verpopup==1){
+                        const mensaje = `
+                            Ingresos: S/ ${ingresos}<br>
+                            Egresos: S/ ${egresos}<br>
+                            Saldo: S/ ${saldo}<br>
+                            <a href="{{ route('noticias') }}" class="text-white " style="text-decoration: underline;">Ver más</a>
+                        `;
+
+                        // Mostrar el toastr
+                        toastr.info(mensaje, "Resumen de Gastos e Ingresos", {
+                            positionClass: "toast-top-center",
+                            timeOut: 5000,
+                            closeButton: true,
+                            progressBar: true,
+                            showMethod: "fadeIn",
+                            hideMethod: "fadeOut",
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    toastr.error("No se pudo obtener el resumen de gastos e ingresos.", "Error", {
+                        positionClass: "toast-top-center",
+                        timeOut: 5000,
+                        closeButton: true,
+                        progressBar: true,
+                        showMethod: "fadeIn",
+                        hideMethod: "fadeOut",
+                    });
+                }
+            });
+        }
+
 	});
 </script>
