@@ -134,7 +134,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/noticias', [NoticiasController::class, 'noticias_index'])->name('noticias');
     Route::post('/acumuladores/actualizartotales', [NoticiasController::class, 'actualizarTotales'])->name('acumuladores.actualizarTotales');
 
-
     Route::get('/intbancario', [InteresBancarioController::class, 'intbancario_index'])->name('intbancario');
     Route::get('/intbancario/get', [InteresBancarioController::class, 'getIntbancarios'])->name('intbancario_get');
     Route::post('/addintbancario', [InteresBancarioController::class, 'store'])->name('addintbancario');
@@ -233,6 +232,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/addpermisos', [ConfiguracionController::class, 'agregarPermiso'])->name('addpermisos');
     Route::put('/updusuario/{id}', [ConfiguracionController::class, 'update'])->name('updusuario');
     Route::post('/habilitapopup', [ConfiguracionController::class, 'habilitaPopup'])->name('habilita_popup');
+    Route::post('/habilitanotifuser', [ConfiguracionController::class, 'habilitaNotifUser'])->name('habilitanotifuser');
     //Route::resource('gastos', PagoController::class); activeuser
 
     //Notificacion por whatsapp

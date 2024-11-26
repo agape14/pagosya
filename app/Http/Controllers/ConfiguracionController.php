@@ -232,6 +232,27 @@ class ConfiguracionController extends Controller
         }
     }
 
+    public function habilitaNotifUser(Request $request)
+    {
+        try {
+            $acumulador = Acumulador::findOrFail(5);
+            // Alternar el valor de correlativo (1 -> 0, 0 -> 1)
+            $nuevoEstado = $acumulador->correlativo == 1 ? 0 : 1;
+            $mensaje = $nuevoEstado == 1
+                ? "Se activó la notificacion de los usuarios."
+                : "Se desactivó la notificacion de los usuarios.";
+
+            // Actualizar el valor y guardar
+            $acumulador->correlativo = $nuevoEstado;
+            $acumulador->save();
+
+            // Retornar el mensaje de éxito
+            return response()->json(['success' => $mensaje]);
+        } catch (\Exception $e) {
+            // Manejar errores inesperados
+            return response()->json(['error' => 'Ocurrió un error al actualizar el estado del popup.']);
+        }
+    }
     /**
      * Show the form for creating a new resource.
      *

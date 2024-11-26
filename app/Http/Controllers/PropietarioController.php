@@ -14,6 +14,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use App\Mail\PropietarioMailable;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Acumulador;
 
 class PropietarioController extends Controller
 {
@@ -266,15 +267,38 @@ class PropietarioController extends Controller
 
     public function enviarNotificaciones()
     {
-        // Obtener todos los propietarios
-        $propietarios = Propietario::where('dni', '=', '45742059')->get();
-        //$propietarios = Propietario::where('dni', '<>', '00000000')->get();
-        // Enviar la notificación a cada propietario
+        try {
+            // Obtener el valor de 'correlativo'
+            $notificartodosusuario = Acumulador::where('id', 5)->first()?->correlativo ?? 0;
 
-        foreach ($propietarios as $propietario) {
-            Mail::to($propietario->correo_electronico)->send(new PropietarioMailable($propietario));
+            // Obtener los propietarios según el valor de 'correlativo'
+            $propietarios = collect(); // Colección vacía por defecto
+
+            if ($notificartodosusuario == 0) {
+                $propietarios = Propietario::where('id', '101')->get();
+            } elseif ($notificartodosusuario == 1) {
+                $propietarios = Propietario::where('dni', '<>', '00000000')->get();
+            }
+
+            // Validar si hay propietarios para notificar
+            if ($propietarios->isEmpty()) {
+                return response()->json(['message' => 'No hay propietarios para notificar.'], 200);
+            }
+
+            foreach ($propietarios as $propietario) {
+                // Validar que el correo sea válido antes de enviar
+                if (filter_var($propietario->correo_electronico, FILTER_VALIDATE_EMAIL)) {
+                    Mail::to($propietario->correo_electronico)->send(new PropietarioMailable($propietario));
+                } else {
+                    \Log::warning("Correo inválido para el propietario con DNI: {$propietario->dni}");
+                }
+            }
+
+            return response()->json(['message' => 'Correos enviados con éxito.'], 200);
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar notificaciones: ' . $e->getMessage());
+            return response()->json(['message' => 'Ocurrió un error al enviar los correos.', 'error' => $e->getMessage()], 500);
         }
-
-        return response()->json(['message' => 'Correos enviados con éxito']);
     }
+
 }

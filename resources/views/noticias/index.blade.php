@@ -27,6 +27,8 @@
 									</div>
                                     <div class="dropdown-menu dropdown-menu-right">
                                         <a class="dropdown-item" href="javascript:void(0);" id="btnActualizarTotales">Actualizar totales</a>
+                                        <a class="dropdown-item" href="javascript:void(0);" id="btnActivarNotificarUsuarios">Activar Notificacion Usuarios</a>
+                                        <a class="dropdown-item" href="javascript:void(0);" id="btnNotificarUsuarios">Notificar Usuarios</a>
                                     </div>
                                 </div>
                                 @endif
@@ -487,5 +489,62 @@
             });
         });
 
+        $(document).on('click', '#btnNotificarUsuarios', function () {
+            $.ajax({
+                url: "{{ route('notificar.propietarios') }}", // Ruta al controlador
+                type: "GET",
+                success: function(response) {
+                    // Mostrar alerta de éxito
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: response.message,
+                        confirmButtonText: 'Aceptar'
+                    });
+
+                    swal("Actualizado!", response.message, "success")
+                },
+                error: function(xhr) {
+                    // Mostrar alerta de error
+                    swal("¡Error!", xhr.responseJSON.message || 'Ocurrió un error inesperado.', "error")
+                }
+            });
+        });
+
+        $(document).on('click', '#btnActivarNotificarUsuarios', function () {
+            swal({
+                title: "¿Estás seguro?",
+                text: "¡Actualizando la Notificacion de Usuarios!",
+                type: "warning",
+                showCancelButton: !0,
+                confirmButtonColor: "#6418C3",
+                cancelButtonColor: '#d33',
+                confirmButtonText: "Sí, actualizar",
+                cancelButtonText: "Cancelar",
+                closeOnConfirm: !1,
+                closeOnCancel: !1
+            }).then((result) => {
+                if (result.value) {
+                    $.ajax({
+                        url: '/habilitanotifuser',
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            swal("Actualizado!", response.success, "success")
+                            console.log('Popup des/habilitado exitosamente.');
+                        },
+                        error: function(xhr, status, error) {
+                            swal("Error!", "Error al des/habilitado Popup: "+error, "error")
+                            console.error('Error al des/habilitado Popup:', error);
+                        }
+                    });
+
+                }else{
+                    swal("Cancelado!", "Se cancelo la accion", "error")
+                }
+            })
+        });
 	});
 </script>
