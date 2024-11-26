@@ -26,17 +26,17 @@ class ProgramacionPagoController extends Controller
     {
         $page_title = 'Programacion';
         $page_description = 'Some description for the page';
-		
+
 		$action = __FUNCTION__;
 
-        $idTorre = env('ID_TORRE_SISTEMA', 6); 
+        $idTorre = env('ID_TORRE_SISTEMA', 7);
         // Obtener los IDs de los propietarios que ya tienen subpropietarios
         $idsPropietariosConSubPropietarios = SubPropietario::pluck('sub_propietario_id')->toArray();
 
         $propietarios = Propietario::with('torre')->where('id_torre', $idTorre)
             ->whereNotIn('id', $idsPropietariosConSubPropietarios)
             ->get();
-        //$propietarios = Propietario::with('torre')->get(); 
+        //$propietarios = Propietario::with('torre')->get();
         $conceptos = Concepto::with('nombreMes')->where('id_tipo_concepto','=','1')->where('activo','=','1')->get();
         //dd($conceptos);
         return view('programacion.index', compact('propietarios', 'conceptos', 'page_title', 'page_description','action'));
@@ -143,7 +143,7 @@ class ProgramacionPagoController extends Controller
         $creadoPor = Auth::id();
 
         $codprogramacion = $data['id_programacion'];
-        
+
         if ($codprogramacion) {
             $programacionPago = ProgramacionPago::findOrFail($codprogramacion);
             $programacionPago->total = $monto;
@@ -161,7 +161,7 @@ class ProgramacionPagoController extends Controller
             if (isset($data['chkGrupal']) && $data['chkGrupal'] === 'on') {
                 // Obtener todos los propietarios (ID del 1 al 120)
                 $propietarios = Propietario::whereBetween('id', [1, 120])->get();
-    
+
                 foreach ($propietarios as $propietario) {
                     $programacionPago = ProgramacionPago::create([
                         'id_propietario' => $propietario->id,
@@ -170,7 +170,7 @@ class ProgramacionPagoController extends Controller
                         'total' => $monto,
                         'creado_por' => $creadoPor,
                     ]);
-    
+
                     ProgramacionPagoDetalle::create([
                         'id_programacion' => $programacionPago->id,
                         'descripcion' => 'Detalle del pago', // Puedes ajustar la descripción según sea necesario
@@ -189,7 +189,7 @@ class ProgramacionPagoController extends Controller
                     'total' => $monto,
                     'creado_por' => $creadoPor,
                 ]);
-    
+
                 ProgramacionPagoDetalle::create([
                     'id_programacion' => $programacionPago->id,
                     'descripcion' => 'Detalle del pago',
@@ -199,9 +199,9 @@ class ProgramacionPagoController extends Controller
                 ]);
                 $this->recordAudit('Nuevo', 'Programación creado: ' . $programacionPago->id);
             }
-            return response()->json(['success' => 'Programación de pago creada exitosamente']);  
+            return response()->json(['success' => 'Programación de pago creada exitosamente']);
         }
-              
+
     }
 
     /**
@@ -250,7 +250,7 @@ class ProgramacionPagoController extends Controller
         try {
             // Iniciar una transacción
             DB::beginTransaction();
-            
+
             $programaciones = ProgramacionPago::findOrFail($id);
             $programacionesdet = ProgramacionPagoDetalle::where('id_programacion', $id)->firstOrFail();
 
@@ -258,19 +258,19 @@ class ProgramacionPagoController extends Controller
             $programacionesdet->activo=0;
 
             $programaciones->save();
-            $programacionesdet->save();    
+            $programacionesdet->save();
             $this->recordAudit('Eliminado', 'Programacion eliminado: ' . $programaciones->id);
             // Confirmar la transacción
             DB::commit();
-    
-            return response()->json(['success' => 'Programacion Pago eliminado correctamente.']); 
+
+            return response()->json(['success' => 'Programacion Pago eliminado correctamente.']);
         } catch (\Exception $e) {
             // Revertir la transacción en caso de error
             DB::rollBack();
-    
+
             return response()->json(['error' => 'Error al eliminar el Programacion Pago. ', 'message' => $e->getMessage()], 500);
         }
 
-          
+
     }
 }

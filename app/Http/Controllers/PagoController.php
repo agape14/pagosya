@@ -37,7 +37,7 @@ class PagoController extends Controller
 
 		$action = __FUNCTION__;
 
-        $idTorre = env('ID_TORRE_SISTEMA', 6);
+        $idTorre = env('ID_TORRE_SISTEMA', 7);
         // Obtener los IDs de los propietarios que ya tienen subpropietarios
         $idsPropietariosConSubPropietarios = SubPropietario::pluck('sub_propietario_id')->toArray();
 
@@ -721,7 +721,7 @@ class PagoController extends Controller
     }
     public function generatePDF($id)
     {
-        $idTorre = env('ID_TORRE_SISTEMA', 6);
+        $idTorre = env('ID_TORRE_SISTEMA', 7);
         $juntadirectiva= env('JUNTA_DIRECTIVA', "");
         $delegada = env('DELEGADA', "");
         $tesorera = env('TESORERA', "");
@@ -764,7 +764,7 @@ class PagoController extends Controller
 
     public function generarPDF($id)
     {
-        $idTorre = env('ID_TORRE_SISTEMA', 6);
+        $idTorre = env('ID_TORRE_SISTEMA', 7);
         $juntadirectiva= env('JUNTA_DIRECTIVA', "");
         $delegada = env('DELEGADA', "");
         $tesorera = env('TESORERA', "");

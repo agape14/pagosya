@@ -35,7 +35,7 @@ class PropietarioController extends Controller
 
     public function getPropietarios()
     {
-        $idTorre = env('ID_TORRE_SISTEMA', 6);
+        $idTorre = env('ID_TORRE_SISTEMA', 7);
         // Obtener los IDs de los propietarios que ya tienen subpropietarios
         $idsPropietariosConSubPropietarios = SubPropietario::pluck('sub_propietario_id')->toArray();
         //dd($idTorre);

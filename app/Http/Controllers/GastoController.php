@@ -27,7 +27,7 @@ class GastoController extends Controller
 		$action = __FUNCTION__;
         //$gastos = Gasto::all();
 
-        $idTorre = env('ID_TORRE_SISTEMA', 6);
+        $idTorre = env('ID_TORRE_SISTEMA', 7);
         // Obtener los IDs de los propietarios que ya tienen subpropietarios
         $idsPropietariosConSubPropietarios = SubPropietario::pluck('sub_propietario_id')->toArray();
 
@@ -143,7 +143,7 @@ class GastoController extends Controller
     public function store(Request $request)
     {
 
-        $idTorre = env('ID_TORRE_SISTEMA', 6);
+        $idTorre = env('ID_TORRE_SISTEMA', 7);
         $codigonuevo = $request->input('gastoId');
 
         if ($codigonuevo) {
