@@ -250,4 +250,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/corregir-pagos', [PagoController::class, 'corregirPagos'])->name('corregir.pagos');
 
+    Route::get('/verificarparametro', function () {
+        return response()->json([
+            'ID_TORRE_SISTEMA' => env('ID_TORRE_SISTEMA'),
+        ]);
+    });
 });
