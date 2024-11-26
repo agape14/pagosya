@@ -79,7 +79,7 @@
 													<i class="fa fa-money"></i>
 												</div>
                                                 <div class="media-body">
-													<h5 class="mb-1">SALDO <small class="text-muted">|</small></h5>
+													<h5 class="mb-1 text-info">SALDO <small class="text-muted"></small></h5>
 												</div>
                                                 <div class="dropdown">
 													<button type="button" class="btn btn-info light sharp" >
@@ -222,11 +222,14 @@
                                                         @foreach ($ingresos as $ingreso)
                                                             <tr>
                                                                 <th scope="row">{{ $contador }}</th>
-                                                                <td>{{ $ingreso->fecha }}</td>
+                                                                <td>{{ \Carbon\Carbon::parse($ingreso->fecha)->format('d/m/Y') }}</td>
                                                                 <td>
                                                                     @foreach($ingreso->detalles as $detalle)
                                                                         <p>
                                                                             {{ $detalle->concepto->descripcion_concepto ?? 'Sin concepto' }} <br>
+                                                                            {{ ($detalle->concepto->nombreMes ? $detalle->concepto->nombreMes->nombremes : '') . " " . ($detalle->concepto->anio? $detalle->concepto->anio : '') }}<br>
+                                                                            <br>
+                                                                            <span class="text-danger">{{ $detalleg->descripcion ?? '' }}</span>
                                                                         </p>
                                                                     @endforeach
                                                                 </td>
@@ -285,12 +288,16 @@
                                                         @foreach ($gastos as $gasto)
                                                             <tr>
                                                                 <th scope="row">{{ $contadorg }}</th>
-                                                                <td>{{ $gasto->fecha }}</td>
+                                                                <td>{{ \Carbon\Carbon::parse($gasto->fecha)->format('d/m/Y') }}</td>
                                                                 <td>
                                                                     @foreach($gasto->detalles as $detalleg)
                                                                         <p>
                                                                             {{ $detalleg->concepto->descripcion_concepto ?? 'Sin concepto' }} <br>
+                                                                            {{ ($detalleg->concepto->nombreMes ? $detalleg->concepto->nombreMes->nombremes : '') . " " . ($detalleg->concepto->anio? $detalleg->concepto->anio : '') }}
+                                                                            <br>
+                                                                            <span class="text-danger">{{ $detalleg->descripcion ?? '' }}</span>
                                                                         </p>
+
                                                                     @endforeach
                                                                 </td>
                                                                 <td class="text-right text-primary">S/ {{ number_format($gasto->total, 2) }}</td>

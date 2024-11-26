@@ -164,6 +164,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/addpropietario', [PropietarioController::class, 'store'])->name('addPropietario');
     Route::get('/propietarios/get/{id}', [PropietarioController::class, 'getPropietario'])->name('propietarios_get_id');
     Route::put('/editpropietario/{id}', [PropietarioController::class, 'update'])->name('propietarios_edit');
+    Route::get('/notificarusuarios', [PropietarioController::class, 'enviarNotificaciones'])->name('notificar.propietarios');
+
     //Route::delete('/propietarios/delete/{id}', [PropietarioController::class, 'destroy'])->name('propietarios_delete_id');
 
     Route::get('propietarios/{id}/sub', [PropietarioController::class, 'getSubPropietarios'])->name('propietarios.sub');

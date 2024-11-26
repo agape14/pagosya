@@ -19,7 +19,7 @@
     <table width="100%">
         <tr>
             <td>
-                <img src="{{ public_path('images/logo_g07.jpeg') }}" alt="Torre G6" class="logo">
+                <img src="{{ public_path('images/logo_g07.jpeg') }}" alt="Torre G7" class="logo">
                 {{--<h1>Torre G6</h1>--}}
             </td>
             <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>

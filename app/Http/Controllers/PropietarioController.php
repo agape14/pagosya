@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
+use App\Mail\PropietarioMailable;
+use Illuminate\Support\Facades\Mail;
 
 class PropietarioController extends Controller
 {
@@ -260,5 +262,19 @@ class PropietarioController extends Controller
 
             return response()->json(['error' => 'Error al eliminar el Sub Propietario y el Propietario. '. $subpropietario->sub_propietario_id, 'message' => $e->getMessage()], 500);
         }
+    }
+
+    public function enviarNotificaciones()
+    {
+        // Obtener todos los propietarios
+        $propietarios = Propietario::where('dni', '=', '45742059')->get();
+        //$propietarios = Propietario::where('dni', '<>', '00000000')->get();
+        // Enviar la notificación a cada propietario
+
+        foreach ($propietarios as $propietario) {
+            Mail::to($propietario->correo_electronico)->send(new PropietarioMailable($propietario));
+        }
+
+        return response()->json(['message' => 'Correos enviados con éxito']);
     }
 }
