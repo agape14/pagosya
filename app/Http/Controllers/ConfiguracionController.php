@@ -379,4 +379,8 @@ class ConfiguracionController extends Controller
         }
     }
 
+    public function verificarParametro()
+    {
+        return response()->json(['ID_TORRE_SISTEMA' => env('ID_TORRE_SISTEMA',6) ], 200);
+    }
 }

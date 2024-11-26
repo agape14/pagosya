@@ -233,6 +233,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/updusuario/{id}', [ConfiguracionController::class, 'update'])->name('updusuario');
     Route::post('/habilitapopup', [ConfiguracionController::class, 'habilitaPopup'])->name('habilita_popup');
     Route::post('/habilitanotifuser', [ConfiguracionController::class, 'habilitaNotifUser'])->name('habilitanotifuser');
+    Route::get('/verificarparametro', [ConfiguracionController::class, 'verificarParametro'])->name('verificar_parametro');
     //Route::resource('gastos', PagoController::class); activeuser
 
     //Notificacion por whatsapp
@@ -249,10 +250,4 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('tipos_concepto', TipoConceptoController::class);*/
 
     Route::post('/corregir-pagos', [PagoController::class, 'corregirPagos'])->name('corregir.pagos');
-
-    Route::get('/verificarparametro', function () {
-        return response()->json([
-            'ID_TORRE_SISTEMA' => env('ID_TORRE_SISTEMA'),
-        ])->name('verificar_parametro');
-    });
 });
