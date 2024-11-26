@@ -29,6 +29,7 @@
                                         <a class="dropdown-item" href="javascript:void(0);" id="btnActualizarTotales">Actualizar totales</a>
                                         <a class="dropdown-item" href="javascript:void(0);" id="btnActivarNotificarUsuarios">Activar Notificacion Usuarios</a>
                                         <a class="dropdown-item" href="javascript:void(0);" id="btnNotificarUsuarios">Notificar Usuarios</a>
+                                        <a class="dropdown-item" href="javascript:void(0);" id="btnVerIdTorre">Ver Id Torre</a>
                                     </div>
                                 </div>
                                 @endif
@@ -495,13 +496,12 @@
                 type: "GET",
                 success: function(response) {
                     // Mostrar alerta de éxito
-                    Swal.fire({
+                    /*Swal.fire({
                         icon: 'success',
                         title: '¡Éxito!',
                         text: response.message,
                         confirmButtonText: 'Aceptar'
-                    });
-
+                    });*/
                     swal("Actualizado!", response.message, "success")
                 },
                 error: function(xhr) {
@@ -545,6 +545,22 @@
                     swal("Cancelado!", "Se cancelo la accion", "error")
                 }
             })
+        });
+        //btnVerIdTorre
+        $(document).on('click', '#btnVerIdTorre', function () {
+
+            $.ajax({
+                url: "{{ route('verificar_parametro') }}", // Ruta al controlador
+                type: "GET",
+                success: function(response) {
+                    swal("Actualizado!", response.ID_TORRE_SISTEMA, "success")
+                },
+                error: function(xhr) {
+                    // Mostrar alerta de error
+                    swal("¡Error!", xhr.responseJSON.message || 'Ocurrió un error inesperado.', "error")
+                }
+            });
+
         });
 	});
 </script>

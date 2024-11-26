@@ -253,6 +253,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/verificarparametro', function () {
         return response()->json([
             'ID_TORRE_SISTEMA' => env('ID_TORRE_SISTEMA'),
-        ]);
+        ])->name('verificar_parametro');
     });
 });
