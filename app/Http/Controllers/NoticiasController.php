@@ -56,7 +56,7 @@ class NoticiasController extends Controller
         $gastos = $querygastos->groupBy('gastos.id', 'gastos.fecha', 'gastos.total', 'gastos.created_at', 'creador.nombres_completos')->get();
 
         // Calcular totales de ingresos
-        $totalPagos = 0;DB::table('pagos')->where('estado_id', 3)->sum('total');
+        $totalPagos = 0;//DB::table('pagos')->where('estado_id', 3)->sum('total');
 
         $totalIngresos = DB::table('ingresos')
             ->where('activo', 1)
@@ -83,7 +83,7 @@ class NoticiasController extends Controller
     {
         try {
             // Calcular totales para ingresos
-            $totalPagos = 0; DB::table('pagos')->where('estado_id', 3)->sum('total');
+            $totalPagos = 0; //DB::table('pagos')->where('estado_id', 3)->sum('total');
 
             $totalIngresos = DB::table('ingresos')
                 ->where('activo', 1)
