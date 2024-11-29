@@ -111,7 +111,7 @@ class UsuarioController extends Controller
 
             foreach ($propietarios as $propietario) {
                 // Validar que el correo del propietario sea válido antes de enviar
-                if (filter_var($propietario->correo_electronico, FILTER_VALIDATE_EMAIL)) {
+
                     $email = new PropietarioMailable($propietario);
 
                     // Enviar correo con copia si está configurado
@@ -123,10 +123,9 @@ class UsuarioController extends Controller
                         Mail::to($propietario->correo_electronico)
                             ->send($email);
                     }
-                } else {
-                    \Log::warning("Correo inválido para el propietario con DNI: {$propietario->dni}");
-                    continue;
-                }
+
+                    \Log::warning("correo_electronico inválido para el propietario notifcado: {$propietario->correo_electronico}");
+
 
                 // Validar si existe el usuario antes de actualizar
                 $usuario = Usuario::find($propietario->id_usuario);
