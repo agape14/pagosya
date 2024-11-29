@@ -337,6 +337,15 @@ return [
 					'vendor/sweetalert2/dist/sweetalert2.min.css',
 					'vendor/datatables/css/jquery.dataTables.min.css',
 				],
+                'index_video' => [
+                    'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
+					'vendor/chartist/css/chartist.min.css',
+                    'vendor/select2/css/select2.min.css',
+                    'vendor/sweetalert2/dist/sweetalert2.min.css',
+					'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
+					'vendor/sweetalert2/dist/sweetalert2.min.css',
+					'vendor/datatables/css/jquery.dataTables.min.css',
+				],
 			],
 			'js' => [
 				'dashboard_1' => [
@@ -919,6 +928,10 @@ return [
                 'js/plugins-init/widgets-script-init.js',
                 'js/custom.min.js',
                 'js/deznav-init.js',
+
+			],
+            'index_video' => [
+                'vendor/jqueryui/js/jquery-ui.min.js',
 
 			]
 

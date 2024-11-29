@@ -70,7 +70,7 @@
                         </form>
 
                       <div class="new-account mt-3">
-                          <p>¿No tienes cuenta? <a class="text-primary" href="{!! url('/page-register'); !!}">Registrar</a></p>
+                          <p>¿Quieres ver los video tutoriales? <a class="text-primary" href="{!! url('/videos'); !!}">Ingresa aquí</a></p>
                       </div>
                   </div>
               </div>

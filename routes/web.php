@@ -13,6 +13,7 @@ use App\Http\Controllers\TipoConceptoController;
 use App\Http\Controllers\IngresoController;
 use App\Http\Controllers\InteresBancarioController;
 use App\Http\Controllers\NoticiasController;
+use App\Http\Controllers\VideoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -251,3 +252,4 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/corregir-pagos', [PagoController::class, 'corregirPagos'])->name('corregir.pagos');
 });
+Route::get('/videos', [VideoController::class, 'index_video'])->name('videos.index');
