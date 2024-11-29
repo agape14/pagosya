@@ -32,4 +32,9 @@ class Propietario extends Model
      {
          return $this->belongsTo(CodigosPais::class, 'id_codigo_pais');
      }
+
+     public function usuario()
+    {
+        return $this->belongsTo(Usuario::class, 'id_usuario', 'id');
+    }
 }

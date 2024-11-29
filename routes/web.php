@@ -14,7 +14,7 @@ use App\Http\Controllers\IngresoController;
 use App\Http\Controllers\InteresBancarioController;
 use App\Http\Controllers\NoticiasController;
 use App\Http\Controllers\VideoController;
-
+use App\Http\Controllers\UsuarioController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -236,6 +236,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/habilitanotifuser', [ConfiguracionController::class, 'habilitaNotifUser'])->name('habilitanotifuser');
     Route::get('/verificarparametro', [ConfiguracionController::class, 'verificarParametro'])->name('verificar_parametro');
     //Route::resource('gastos', PagoController::class); activeuser
+
+    //enviarNotificacionUsuario
+    Route::get('/notificausuario/{id}', [UsuarioController::class, 'enviarNotificacionUsuario'])->name('notifica.usuario');
 
     //Notificacion por whatsapp
     Route::get('/pagodescargar-recibo/{id}', [PagoController::class, 'descargarRecibo'])->name('descargar.recibo');

@@ -84,6 +84,18 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="form-group">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="dni">DNI:</label>
+                                                <input type="text" class="form-control" id="dni" name="dni" maxlength="8">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="telefono">Usuario:</label>
+                                                <input type="text" class="form-control" id="usuario" name="usuario"  disabled>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <!--<div class="form-group">
                                         <label for="telefono">Teléfono:</label>
                                         <input type="text" class="form-control" id="telefono" name="telefono" maxlength="9" pattern="\d{9}" title="Debe contener exactamente 9 dígitos numéricos">
@@ -287,10 +299,18 @@
                     $('#apellido').val(data.apellido);
                     $('#correo_electronico').val(data.correo_electronico);
                     $('#telefono').val(data.telefono);
+                    $('#dni').val(data.dni);
+                    if (data.usuario) {
+                        $('#usuario').val(data.usuario.usuario); // Si hay usuario, llenar el campo
+                    } else {
+                        $('#usuario').val(''); // Si no hay usuario, dejar el campo vacío
+                    }
                     $('#AddPropietarioModalLabel-1').text('Editar Propietario');
                     $('#propietarioForm').attr('action', '/editpropietario/' + id).attr('method', 'POST');
                     $('#propietarioForm').append('<input type="hidden" name="_method" value="PUT">');
                     $('#AddPropietarioModal').modal('show');
+                }).fail(function() {
+                    swal("Error!", 'Error al obtener los datos del propietario.', "error")
                 });
             });
 
@@ -440,9 +460,24 @@
                         swal("Registro Correcto!", response.success, "success")
                         $('#tblPropietarios').DataTable().ajax.reload(null, false);
                     },
-                    error: function(response) {
-                        swal("Error!", response, "error")
-                        console.error(response);
+                    error: function(xhr) {
+                        if (xhr.status === 422) { // Código de estado HTTP para errores de validación
+                            var errors = xhr.responseJSON.errors; // Obtener los errores del JSON
+                            var errorMessages = '';
+
+                            // Construir un mensaje con todos los errores
+                            $.each(errors, function(key, messages) {
+                                errorMessages += messages.join('<br>') + '<br>';
+                            });
+
+                            swal({
+                                title: "Error de Validación",
+                                html: errorMessages, // Mostrar errores como HTML
+                                icon: "error"
+                            });
+                        } else {
+                            swal("Error!", "Ocurrió un error inesperado. Por favor, intenta nuevamente.", "error");
+                        }
                     }
                 });
             });

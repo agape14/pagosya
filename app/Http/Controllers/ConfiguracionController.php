@@ -54,8 +54,11 @@ class ConfiguracionController extends Controller
             'usuarios.id_perfil',
             'perfiles.nombre_perfil',
             'usuarios.activo',
+            'usuarios.correo_notificaciones',
+            'propietarios.id as propietario_id' // Obtener el ID del propietario relacionado
             )
-        ->join('perfiles', 'usuarios.id_perfil', '=', 'perfiles.id');
+        ->join('perfiles', 'usuarios.id_perfil', '=', 'perfiles.id')
+        ->leftJoin('propietarios', 'usuarios.id', '=', 'propietarios.id_usuario'); // Unir con Propietario;
         //->where('usuarios.activo','=','1');
         return DataTables::of($torres)
             ->addColumn('nombre_perfil', function($row){
@@ -74,18 +77,29 @@ class ConfiguracionController extends Controller
                     return '<span class="badge light badge-danger">Inactivo</span>';
                 }
             })
+            ->addColumn('correo_notificaciones', function($row){
+                if($row->correo_notificaciones==1){
+                    return '<span class="badge light badge-info">Notificado</span>';
+                } elseif($row->correo_notificaciones==0){
+                    return '<span class="badge light badge-dark">Sin notificar</span>';
+                }
+            })
             ->addColumn('action', function ($row) {
                 $btn = '<div class="d-flex">';
                 if($row->activo==1){
                     $btn .= '<a href="javascript:void(0)" data-id="' . $row->id . '" class="edit btn btn-primary shadow btn-sm sharp mr-1 editBtn"><i class="fa fa-pencil"></i></a>';
                     $btn .= ' <a href="javascript:void(0)" data-id="' . $row->id . '" class="btn btn-danger shadow btn-sm sharp mr-1 deleteBtn"><i class="fa fa-trash"></i></a>';
+                    // Verificar si tiene relación con Propietario
+                    if (!is_null($row->propietario_id)) {
+                        $btn .= '<a href="javascript:void(0)" data-id="' . $row->propietario_id . '" class="btn btn-info shadow btn-sm sharp mr-1 notificaBtn"><i class="fa fa-envelope"></i></a>';
+                    }
                 }else{
                     $btn .= '<a href="javascript:void(0)" data-id="' . $row->id . '" class="edit btn btn-success shadow btn-sm sharp mr-1 activeBtn"><i class="fa fa-check"></i></a>';
                 }
                 $btn .= '</div>';
                 return $btn;
             })
-            ->rawColumns(['nombre_perfil','estado','action'])
+            ->rawColumns(['nombre_perfil','estado','action','correo_notificaciones'])
             ->make(true);
     }
 
@@ -117,6 +131,18 @@ class ConfiguracionController extends Controller
             }
             $edituser->actualizado_por =  Auth::id();
             $edituser->save();
+
+            $propietario = Propietario::where('id_usuario', $edituser->id)->first();
+
+            if ($propietario) {
+                $propietario->correo_electronico = $request->correo_electronico;
+                $propietario->telefono = $request->telefono;
+                $propietario->actualizado_por = auth()->id();
+                $propietario->save();
+            } else {
+                \Log::warning("No se encontró un propietario relacionado para el usuario ID: {$usuarioupd->id}");
+            }
+
             $this->recordAudit('Editado', 'Usuario editado: ' . $edituser->id);
             return response()->json(['success' => 'Usuario actualizada correctamente.']);
         }else{
@@ -303,7 +329,7 @@ class ConfiguracionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    /*public function update(Request $request, $id)
     {
         $request->validate([
             'nombres_completos' => 'required|string|max:500',
@@ -321,8 +347,70 @@ class ConfiguracionController extends Controller
         }
         $usuarioupd->save();
 
+        $propietario = Propietario::where('id_usuario',$usuarioupd->$id)->first();
+        if ($propietario) {
+            $propietario->correo_electronico = $request->correo_electronico;;
+            $propietario->actualizado_por = auth()->id(); // Ajustar según el contexto de autenticación
+            $propietario->save();
+        } else {
+            \Log::warning("No se encontró el usuario relacionado para el usuarioupd con id: {$usuarioupd->id}");
+        }
+
         $this->recordAudit('Editado', 'Usuario actualizado: ' . $usuarioupd->id.' asi mismo.');
         return redirect()->back()->with('success', 'Usuario actualizado exitosamente.');
+    }*/
+
+    public function update(Request $request, $id)
+    {
+        // Validar los datos de entrada
+        $validatedData = $request->validate([
+            'nombres_completos' => 'required|string|max:500',
+            'telefono' => 'required|string|max:12',
+            'correo_electronico' => 'required|email|max:250',
+            'contrasenia' => 'nullable|string|min:6', // Validación opcional para contraseña
+        ]);
+
+        try {
+            // Encontrar el usuario
+            $usuarioupd = Usuario::findOrFail($id);
+
+            // Actualizar los datos del usuario
+            $usuarioupd->fill([
+                'nombres_completos' => $validatedData['nombres_completos'],
+                'telefono' => $validatedData['telefono'],
+                'correo_electronico' => $validatedData['correo_electronico'],
+                'actualizado_por' => auth()->id(),
+            ]);
+
+            // Verificar si se proporcionó una nueva contraseña
+            if ($request->filled('contrasenia')) {
+                $usuarioupd->contrasenia = bcrypt($validatedData['contrasenia']);
+            }
+
+            $usuarioupd->save();
+
+            // Actualizar el propietario relacionado, si existe
+            $propietario = Propietario::where('id_usuario', $usuarioupd->id)->first();
+
+            if ($propietario) {
+                $propietario->correo_electronico = $validatedData['correo_electronico'];
+                $propietario->telefono = $validatedData['telefono'];
+                $propietario->actualizado_por = auth()->id();
+                $propietario->save();
+            } else {
+                \Log::warning("No se encontró un propietario relacionado para el usuario ID: {$usuarioupd->id}");
+            }
+
+            // Registrar auditoría
+            $this->recordAudit('Editado', 'Usuario actualizado: ' . $usuarioupd->id.' asi mismo en mi perfil.');
+
+            // Retornar respuesta exitosa
+            return redirect()->back()->with('success', 'Usuario actualizado exitosamente.');
+        } catch (\Exception $e) {
+            // Manejar errores
+            \Log::error("Error al actualizar usuario ID: {$id}. Error: " . $e->getMessage());
+            return redirect()->back()->withErrors('Ocurrió un error al actualizar el usuario.');
+        }
     }
 
     /**

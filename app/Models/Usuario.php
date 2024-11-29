@@ -15,7 +15,7 @@ class Usuario extends Authenticatable
     protected $table = 'usuarios';
     protected $primaryKey = 'id';
     protected $fillable = [
-        'usuario', 'contrasenia', 'nombres_completos', 'correo_electronico', 'telefono', 'id_perfil',
+        'usuario', 'contrasenia', 'nombres_completos', 'correo_electronico','correo_notificaciones', 'telefono', 'id_perfil',
     ];
 
     protected $hidden = [
@@ -36,8 +36,14 @@ class Usuario extends Authenticatable
     {
         return $this->belongsToMany(Permiso::class, 'permisos_usuarios', 'id_usuario', 'id_permiso');
     }
-    
+
     public function tienePermiso($permisoId) {
         return $this->permisos()->where('id', $permisoId)->exists();
     }
+
+    public function propietario()
+    {
+        return $this->hasOne(Propietario::class, 'id_usuario', 'id');
+    }
+
 }

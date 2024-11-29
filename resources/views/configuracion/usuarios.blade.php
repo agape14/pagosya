@@ -33,6 +33,7 @@
                                     <th>Celular</th>
                                     <th>Perfil</th>
                                     <th>Estado</th>
+                                    <th>Notificado</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
@@ -112,6 +113,7 @@
                     { data: 'telefono', name: 'telefono' },
                     { data: 'nombre_perfil', name: 'nombre_perfil' },
                     { data: 'estado', name: 'estado' },
+                    { data: 'correo_notificaciones', name: 'correo_notificaciones' },
                     { data: 'action', name: 'action', orderable: false, searchable: false },
                 ]
             });
@@ -235,6 +237,37 @@
                 })
             });
 
+            $('#tblUsuarios').on('click', '.notificaBtn', function() {
+                var id = $(this).data('id');
+                swal({
+                    title: "¿Estás seguro?",
+                    text: "¡Va a NOTIFICAR al usuario!",
+                    type: "warning",
+                    showCancelButton: !0,
+                    confirmButtonColor: "#6418C3",
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: "Sí, notificar",
+                    cancelButtonText: "Cancelar",
+                    closeOnConfirm: !1,
+                    closeOnCancel: !1
+                }).then((result) => {
+                    if (result.value) {
+                        $.ajax({
+                            url: '/notificausuario/' + id,
+                            type: "GET",
+                            success: function(response) {
+                                swal("Notificado!", response.message, "success")
+                                $('#tblUsuarios').DataTable().ajax.reload();
+                            },
+                            error: function(xhr) {
+                                swal("¡Error!", xhr.responseJSON.message || 'Ocurrió un error inesperado.', "error")
+                            }
+                        });
+                    }else{
+                        swal("Cancelado!", "Se cancelo la accion", "error")
+                    }
+                })
+            });
 
             $('#createUsersBtn').on('click', function() {
                 swal({

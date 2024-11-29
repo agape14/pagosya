@@ -205,7 +205,7 @@ class PropietarioController extends Controller
 
     public function getPropietario($id)
     {
-        $propietarios = Propietario::findOrFail($id);
+        $propietarios = Propietario::with('usuario')->findOrFail($id);
         return response()->json($propietarios);
     }
 
@@ -220,6 +220,7 @@ class PropietarioController extends Controller
             'telefono' => 'required|string|max:15',
             'telefono' => ['required', 'digits:' . $countryCode->longitud_telefono],
             'departamento' => 'required|integer',
+            'dni' => 'required|string|size:8|regex:/^\d+$/',
         ]);
 
         $propietario = Propietario::findOrFail($id);
@@ -228,6 +229,7 @@ class PropietarioController extends Controller
         $propietario->correo_electronico = $request->correo_electronico;
         $propietario->id_codigo_pais = $request->pais;
         $propietario->telefono = $request->telefono;
+        $propietario->dni = $request->dni;
         $propietario->actualizado_por = auth()->id(); // Ajustar según sea necesario
         $propietario->save();
         $this->recordAudit('Editado', 'Propietario editado: ' . $propietario->id);
