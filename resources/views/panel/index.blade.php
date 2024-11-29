@@ -13,18 +13,18 @@
                     <div class="col-xl-12">
                         <div class="card">
                             <div class="card-header border-0 pb-0 d-sm-flex d-block">
-                                <div class="col-sm-12 col-md-12  px-0">
-                                    @if ($contdeuda == 0)
+                                <div class="col-sm-12 col-md-12 px-0">
+                                    @if ($contdeuda === 0)
                                         <div class="alert alert-success" role="alert">
                                             No tiene deudas pendientes.
                                         </div>
-                                    @elseif ($contdeuda < 3)
+                                    @elseif ($contdeuda >= 1 && $contdeuda <= 2)
                                         <div class="alert alert-warning" role="alert">
-                                            Usted tiene más de 2 deudas pendientes.
+                                            Usted tiene {{ $contdeuda }} deuda(s) pendiente(s).
                                         </div>
-                                    @else
+                                    @elseif ($contdeuda >= 3)
                                         <div class="alert alert-danger" role="alert">
-                                            Usted debe el 100% de sus pagos.
+                                            Usted debe {{ $contdeuda }} pagos. Por favor, regularice sus deudas.
                                         </div>
                                     @endif
                                 </div>
