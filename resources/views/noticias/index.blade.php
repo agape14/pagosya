@@ -554,7 +554,7 @@
                 type: "GET",
                 success: function(response) {
                     console.log('responseeee',response);
-                    swal("ID de Torre:", response.ID_TORRE_SISTEMA, "success")
+                    swal("ID de Torre:", response.ID_TORRE_SISTEMA.toString(), "success")
                 },
                 error: function(xhr) {
                     // Mostrar alerta de error
