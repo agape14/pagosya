@@ -553,6 +553,7 @@
                 url: "{{ route('verificar_parametro') }}", // Ruta al controlador
                 type: "GET",
                 success: function(response) {
+                    console.log('responseeee',response);
                     swal("ID de Torre:", response.ID_TORRE_SISTEMA, "success")
                 },
                 error: function(xhr) {
