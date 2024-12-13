@@ -5,11 +5,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>MetroAdmin - Bootstrap Admin Dashboard </title>
+    <title>PAGOS YA</title>
     <!-- Favicon icon -->
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/favicon.png') }}">
     <link href="{{ asset('css/style.css') }}" rel="stylesheet">
-    
+
 </head>
 
 <body class="h-100">
@@ -19,10 +19,10 @@
             <div class="col-md-5">
                 <div class="form-input-content text-center error-page">
                     <h1 class="error-text font-weight-bold">404</h1>
-                    <h4><i class="fa fa-exclamation-triangle text-warning"></i> The page you were looking for is not found!</h4>
-                    <p>You may have mistyped the address or the page may have moved.</p>
+                    <h4><i class="fa fa-exclamation-triangle text-warning"></i> ¡La página que estabas buscando no se encuentra!</h4>
+                    <p>Es posible que haya escrito mal la dirección o que la página se haya movido.</p>
                     <div>
-                        <a class="btn btn-primary" href="{!! url('/index'); !!}">Back to Home</a>
+                        <a class="btn btn-primary" href="{!! url('/panel'); !!}">Regresar al Inicio</a>
                     </div>
                 </div>
             </div>

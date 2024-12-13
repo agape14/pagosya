@@ -8,11 +8,11 @@
 <div class="col-md-5">
     <div class="form-input-content text-center error-page">
         <h1 class="error-text font-weight-bold">500</h1>
-        <h4><i class="fa fa-times-circle text-danger"></i> Internal Server Error</h4>
-        <p>You do not have permission to view this resource</p> 
+        <h4><i class="fa fa-times-circle text-danger"></i> Error Interno del Servidor</h4>
+        <p>No tienes permiso para ver este recurso.</p>
         <div>
-            <a class="btn btn-primary" href="{!! url('/index'); !!}">Back to Home</a>
-        </div>	
+            <a class="btn btn-primary" href="{!! url('/panel'); !!}">Regresar al Inicio</a>
+        </div>
     </div>
 </div>
 @endsection

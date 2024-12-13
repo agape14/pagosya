@@ -8,10 +8,10 @@
 	<div class="col-md-5">
       <div class="form-input-content text-center error-page">
           <h1 class="error-text font-weight-bold">404</h1>
-          <h4><i class="fa fa-exclamation-triangle text-warning"></i> The page you were looking for is not found!</h4>
-          <p>You may have mistyped the address or the page may have moved.</p>
+          <h4><i class="fa fa-exclamation-triangle text-warning"></i> ¡La página que estabas buscando no se encuentra!</h4>
+          <p>Es posible que haya escrito mal la dirección o que la página se haya movido.</p>
           <div>
-              <a class="btn btn-primary" href="{!! url('/index'); !!}">Back to Home</a>
+              <a class="btn btn-primary" href="{!! url('/panel'); !!}">Regresar al Inicio</a>
           </div>
       </div>
   </div>

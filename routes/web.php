@@ -65,7 +65,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-
+    /*
     Route::get('/index', 'App\Http\Controllers\ChrevadminController@dashboard_1');
     Route::get('/coin-details', 'App\Http\Controllers\ChrevadminController@coin_details');
     Route::get('/market-capital', 'App\Http\Controllers\ChrevadminController@market_capital');
@@ -130,7 +130,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ui-tab', 'App\Http\Controllers\ChrevadminController@ui_tab');
     Route::get('/ui-typography', 'App\Http\Controllers\ChrevadminController@ui_typography');
     Route::get('/widget-basic', 'App\Http\Controllers\ChrevadminController@widget_basic');
-
+    */
 
     Route::get('/noticias', [NoticiasController::class, 'noticias_index'])->name('noticias');
     Route::post('/acumuladores/actualizartotales', [NoticiasController::class, 'actualizarTotales'])->name('acumuladores.actualizarTotales');
