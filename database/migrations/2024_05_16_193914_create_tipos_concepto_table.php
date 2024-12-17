@@ -26,7 +26,8 @@ class CreateTiposConceptoTable extends Migration
         // Insertar datos iniciales
         DB::table('tipos_concepto')->insert([
             ['tipo_concepto' => 'Pago','creado_por'=>1],
-            ['tipo_concepto' => 'Gasto','creado_por'=>1]
+            ['tipo_concepto' => 'Gasto','creado_por'=>1],
+            ['tipo_concepto' => 'Ingreso','creado_por'=>1],
         ]);
     }
 

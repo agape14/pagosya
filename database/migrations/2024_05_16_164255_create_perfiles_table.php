@@ -22,7 +22,8 @@ class CreatePerfilesTable extends Migration
         // Insertar datos iniciales
         DB::table('perfiles')->insert([
             ['nombre_perfil' => 'Administrador'],
-            ['nombre_perfil' => 'Usuario']
+            ['nombre_perfil' => 'Usuario'],
+            ['nombre_perfil' => 'Propietario'],
         ]);
     }
 
