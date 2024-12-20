@@ -59,9 +59,23 @@
                                                         </td>
                                                         <td class="text-right text-primary">{{ $detdeuda->total }}</td>
                                                         <td>{{ $detdeuda->estado }}</td>
-                                                        @if($detdeuda->idestado==3)
-                                                            <td><a href="javascript:void(0)" data-id="{{ $detdeuda->idpago }}"  class="btn btn-outline-success shadow btn-sm sharp mr-1 verPdfPago"><i class="fa fa-print fa-2x"></i></a></td>
-                                                        @endif
+
+                                                        <td>
+                                                            @if($detdeuda->idestado==1)
+                                                                <a href="javascript:void(0)"
+                                                                    data-id="{{ $detdeuda->id }}"
+                                                                    data-idestado="{{ $detdeuda->idestado }}"
+                                                                    data-departamento="{{ $detdeuda->departamento }}"
+                                                                    data-concepto="{{ $detdeuda->descripcion_concepto }}"
+                                                                    data-total="{{ $detdeuda->total }}"
+                                                                    class="btn btn-outline-warning shadow btn-sm sharp mr-1 addPago">
+                                                                    <i class="fa fa-money fa-2x"></i>
+                                                                </a>
+                                                            @endif
+                                                            @if($detdeuda->idestado==3)
+                                                                <a href="javascript:void(0)" data-id="{{ $detdeuda->idpago }}"  class="btn btn-outline-success shadow btn-sm sharp mr-1 verPdfPago"><i class="fa fa-print fa-2x"></i></a>
+                                                            @endif
+                                                        </td>
                                                       </tr>
                                                     @php
                                                         $contador++; // Incrementar el contador
@@ -93,6 +107,53 @@
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <div class="modal fade" id="AddPagoModal" tabindex="-1" aria-labelledby="AddPagoModalLabel-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form id="pagoFormProp"  action="{{ route('guardar.evidencia.propietario') }}" method="POST" enctype="multipart/form-data">
+                                                    @csrf
+                                                    <input type="hidden" name="id" id="pagoId">
+                                                    <input type="hidden" name="estadoId" id="estadoId">
+                                                    <div class="modal-header">
+                                                    <h4 class="modal-title" id="AddPagoModalLabel-1">Adjuntar Voucher del Pago</h4>
+                                                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span>
+                                                    </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="form-group">
+                                                            <label for="txtAddPayDepartamento">Departamento:</label>
+                                                            <input type="text" class="form-control" id="txtAddPayDepartamento" name="txtAddPayDepartamento" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="txtAddPayConcepto">Concepto:</label>
+                                                            <input type="text" class="form-control" id="txtAddPayConcepto" name="txtAddPayConcepto" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="txtAddPayTotal">Total:</label>
+                                                            <input type="text" class="form-control" id="txtAddPayTotal" name="txtAddPayTotal" readonly>
+                                                        </div>
+                                                        <div class="input-group mb-3">
+                                                            <div class="custom-file">
+                                                                <input type="file" class="custom-file-input" name="evidencia" id="evidencia" accept="image/*" required>
+                                                                <label class="custom-file-label" for="evidencia" id="lblImagen">Seleccionar archivo</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group mb-0">
+                                                            <label for="observacion">Observacion:</label>
+                                                            <textarea class="form-control" rows="4" id="observacion" name="observacion"></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-danger light" data-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-primary">Guardar</button>
+                                                    </div>
+                                                </form>
+
+                                            </div>
+                                            </div>
+                                        </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -155,7 +216,6 @@
 				</div>
                 @endif
             </div>
-
 @endsection
 <script type="module">
 	$(document).ready(function() {
@@ -369,5 +429,93 @@
             });
         }
 
+
+        $(document).on('click', '.verificaPago', function () {
+            let pagoId = $(this).data('id');
+            let estadoId = $(this).data('idestado');
+
+            // Asignar datos al modal
+            $('#pagoIdEvidencia').val(pagoId);
+            $('#estadoIdEvidencia').val(estadoId);
+
+            // Abrir el modal
+            $('#ConfirmaEvidenciaModal').modal('show');
+        });
+
+        $(document).on('click', '.addPago', function () { console.log('aaaaasdeeeeeeeeeeee',);
+            // Capturar los datos del botón
+            let idPago = $(this).data('id');
+            let idEstado = $(this).data('idestado');
+            let departamento = $(this).data('departamento');
+            let concepto = $(this).data('concepto');
+            let total = $(this).data('total');
+            console.log('aaaaasdeeeeeeeeeeee',idPago);
+            // Rellenar los campos del modal
+            $('#pagoId').val(idPago);
+            $('#estadoId').val(idEstado);
+            $('#txtAddPayDepartamento').val(departamento);
+            $('#txtAddPayConcepto').val(concepto);
+            $('#txtAddPayTotal').val(total);
+
+            // Mostrar el modal
+            $('#AddPagoModal').modal('show');
+        });
+
+        $('#evidencia').on('change', function() {
+			var file = this.files[0];
+			var fileType = file.type;
+			var match = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+			if(!((fileType == match[0]) || (fileType == match[1]) || (fileType == match[2]) || (fileType == match[3]))) {
+				swal("Error!", 'Seleccione una imagen válida (JPEG/JPG/PNG/GIF).', "error");
+				$('#evidencia').val('');
+            	$('#evidencia').next('.custom-file-label').text('Seleccionar archivo');
+			}else{
+				var fileName = file.name;
+                $(this).next('.custom-file-label').text(fileName);
+			}
+		});
+
+        $('#pagoFormProp').submit(function(e) {
+			e.preventDefault();
+			$(this).find('button[type="submit"]').prop('disabled', true);
+			var formData = new FormData(this);
+			$.ajax({
+				url: '{{ route('guardar.evidencia.propietario') }}',
+				method: 'POST',
+				data: formData,
+				contentType: false,
+				processData: false,
+				success: function(response) {
+					if (response.success) {
+                        limpiarFormEvidencia();
+                        swal("Registro Correcto!", response.success, "success")
+                            .then(() => {
+                                window.location.reload();
+                            });
+                        $('#tblPago').DataTable().ajax.reload(null, false);
+                    } else {
+                        swal("Error!", 'Ocurrió un error', "error");
+                        console.log('Ocurrió un error');
+                    }
+                    $('#pagoFormProp').find('button[type="submit"]').prop('disabled', false);
+				},
+				error: function(response) {
+                    let msgerror='';
+                    if(response.responseJSON && response.responseJSON.error){
+                        msgerror = response.responseJSON.error;
+                    }
+                    console.log('Ocurrió un error',response.responseJSON.error);
+                    swal("Error!", 'Ocurrió un error. '+msgerror, "error")
+
+                    $('#pagoFormProp').find('button[type="submit"]').prop('disabled', false);
+				}
+			});
+		});
+
+        function limpiarFormEvidencia(){
+			$('#pagoFormProp')[0].reset();
+        	$('#lblImagen').text('Seleccionar archivo');
+			$('#AddPagoModal').modal('hide');
+		}
 	});
 </script>

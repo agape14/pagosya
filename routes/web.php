@@ -188,6 +188,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pagos/getpagopartes/{id}', [PagoController::class, 'pagoPartes'])->name('pagopartes_get_id');
     Route::get('/pagos/get/{id}', [PagoController::class, 'show'])->name('pagos_get_id');
     Route::post('/guardar-evidencia', [PagoController::class, 'guardarEvidencia'])->name('guardar.evidencia');
+    Route::post('/guardar-evidencia-propietario', [PagoController::class, 'guardarEvidenciaPropietario'])->name('guardar.evidencia.propietario');
     Route::post('/confirmar-evidencia', [PagoController::class, 'confirmarEvidencia'])->name('confirmar.evidencia');
     Route::get('/pagos/{id}/pdf', [PagoController::class, 'generatePDF'])->name('pagos.pdf');
     Route::post('/guardar-evidenciamultiple', [PagoController::class, 'guardarEvidenciaMultiple'])->name('guardar.evidenciamultiple');

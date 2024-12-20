@@ -428,8 +428,8 @@ class PagoController extends Controller
     {
         $request->validate([
             'evidencia' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'cuotas' => 'nullable|integer|min:2|max:12',  // Validar número de cuotas
-            'icuotasfaltantes' => 'nullable|integer',  // Validar número de cuotas
+            'cuotas' => 'nullable|integer|min:2|max:12',
+            'icuotasfaltantes' => 'nullable|integer',
         ]);
 
         DB::beginTransaction();
@@ -577,6 +577,7 @@ class PagoController extends Controller
                 $path = $image->storeAs('evidencias', $imageName, 'public');
             }
             //$propietarios_for = Propietario::orderBy('id', 'asc')->take(120)->get();
+            $juntaActiva = JuntaDirectiva::where('estado', 1)->first();
             $propietarios_for = Propietario::where('dni', '<>', '00000000')->where('id', '<=', 120)->orderBy('id', 'asc')->get();
             $acumulador = Acumulador::find(1);
             $ultimoCorrelativo = $acumulador ? $acumulador->correlativo : 0;
@@ -646,6 +647,80 @@ class PagoController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['error' => 'Error al guardar el pago múltiple.'.$e->getMessage()], 500);
+        }
+    }
+
+    public function guardarEvidenciaPropietario(Request $request)
+    {
+        $request->validate([
+            'evidencia' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            if ($request->hasFile('evidencia')) {
+                $image = $request->file('evidencia');
+                $imageName = time() . '.' . $image->getClientOriginalExtension();
+                $path = $image->storeAs('evidencias', $imageName, 'public');
+            }
+            $juntaActiva = JuntaDirectiva::where('estado', 1)->first();
+            $programacionPago = ProgramacionPago::where('id', $request->id)->first();
+            $acumulador = Acumulador::find(1);
+            $ultimoCorrelativo = $acumulador ? $acumulador->correlativo : 0;
+            if ($programacionPago) {
+                $request->monto_a_pagar=$programacionPago->total;
+
+                $programacionPago->estado_id = 2;
+                $programacionPago->save();
+                // Si se encuentra la ProgramacionPago, actualiza su ProgramacionPagoDetalle
+                ProgramacionPagoDetalle::where('id_programacion', $programacionPago->id)
+                    ->update(['estado_id' => 2]);
+
+                // Registro en tabla pagos
+                $pago = new Pago();
+                $pago->id_propietario = $programacionPago->id_propietario;
+                $pago->fecha = now();
+                $pago->total = $programacionPago->total;
+                $pago->cuotas_totales = 1;
+                $pago->creado_por = auth()->id();
+                $pago->evidencia = $path;
+                $pago->estado_id = 2; // "PAGO EN PARTES" o "PAGADO"
+                $pago->activo = 1;
+                $pago->id_programacion = $programacionPago->id;
+                $pago->correlativo = $ultimoCorrelativo++;
+                $pago->id_junta = $juntaActiva->id;
+
+                $pago->save();
+
+                // Detalles del pago
+                $programacionDetalles = ProgramacionPagoDetalle::where('id_programacion', $programacionPago->id)->get();
+                foreach ($programacionDetalles as $detalle) {
+                    $pagoDetalle = new PagoDetalle();
+                    $pagoDetalle->id_pago = $pago->id;
+                    $pagoDetalle->id_concepto = $detalle->id_concepto;
+                    $pagoDetalle->monto = $programacionPago->total;
+                    $pagoDetalle->monto_pagado = $request->monto_a_pagar;
+                    $pagoDetalle->cuotas_pagadas = 1;
+                    $pagoDetalle->estado_id = 2;
+                    $pagoDetalle->evidencia_det = $path;
+                    $pagoDetalle->observacion = null;
+                    $pagoDetalle->creado_por = auth()->id();
+                    $pagoDetalle->save();
+                }
+                $this->recordAudit('Nuevo', 'Pago Registrado por Propietario : ' . $pago->id);
+
+                $ultimoCorrelativo = $ultimoCorrelativo - 1;
+                Acumulador::actualizarCorrelativo(1, $ultimoCorrelativo);
+                DB::commit();
+                return response()->json(['success' => 'Pago Registrado por Propietario correctamente.'], 200);
+            }else{
+                return response()->json(['error' => 'No existen datos del pago programado.'], 500);
+            }
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Error al guardar el Pago Registrado por Propietario.'.$e->getMessage()], 500);
         }
     }
 
