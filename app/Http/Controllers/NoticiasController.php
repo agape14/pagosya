@@ -56,7 +56,7 @@ class NoticiasController extends Controller
         $gastos = $querygastos->groupBy('gastos.id', 'gastos.fecha', 'gastos.total', 'gastos.created_at', 'creador.nombres_completos')->get();
 
         // Calcular totales de ingresos
-        $totalPagos = 0;//DB::table('pagos')->where('estado_id', 3)->sum('total');
+        //$totalPagos = DB::table('pagos')->where('estado_id', 3)->whereYear('created_at', '>=', 2025)->sum('total');
 
         $totalIngresos = DB::table('ingresos')
             ->where('activo', 1)
@@ -67,10 +67,10 @@ class NoticiasController extends Controller
             ->value('saldo_final') ?? 0;
 
         // Obtener acumuladores
-        $acumuladores = Acumulador::whereIn('id', [2, 3])->pluck('monto', 'id');
+        $acumuladores = Acumulador::whereIn('id', [2, 3,6])->pluck('monto', 'id');
         $totales_ingresos = $acumuladores[2] ?? 0;
         $totales_egresos = $acumuladores[3] ?? 0;
-
+        $totalPagos= $acumuladores[6] ?? 0;
         // Calcular el saldo
         $totales_saldo = $totales_ingresos - $totales_egresos;
         return view('noticias.index', compact('page_title', 'page_description','action','logo','logoText',
@@ -100,23 +100,29 @@ class NoticiasController extends Controller
                 ->where('activo', 1)
                 ->sum('total');
 
+            $totalPagos = DB::table('pagos')
+            ->where('estado_id', 3)
+            ->whereYear('created_at', '>=', 2025)
+            ->sum('total');
+
             // Actualizar los registros en la tabla acumuladores
             $ingresos = Acumulador::where('id', 2)->first();
             $egresos = Acumulador::where('id', 3)->first();
-
-            if ($ingresos && $egresos) {
+            $pagos = Acumulador::where('id', 6)->first();
+            if ($ingresos && $egresos && $pagos) {
                 $ingresos->monto = $montoIngresos;
                 $egresos->monto = $montoEgresos;
-
+                $pagos->monto=$totalPagos;
                 $ingresos->save();
                 $egresos->save();
-
+                $pagos->save();
                 return response()->json([
                     'success' => true,
                     'message' => 'Totales actualizados correctamente.',
                     'data' => [
                         'ingresos' => $ingresos,
-                        'egresos' => $egresos
+                        'egresos' => $egresos,
+                        'pagos' => $pagos
                     ]
                 ]);
             }
