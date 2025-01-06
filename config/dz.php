@@ -231,6 +231,7 @@ return [
 				'panel_index' => [
 						'vendor/select2/css/select2.min.css',
 					'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
+                    'vendor/toastr/css/toastr.min.css',
 					'vendor/sweetalert2/dist/sweetalert2.min.css',
 					'vendor/datatables/css/jquery.dataTables.min.css',
 
@@ -735,6 +736,8 @@ return [
 				'vendor/select2/js/select2.full.min.js',
 				'js/plugins-init/select2-init.js',
 				'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
+                'vendor/toastr/js/toastr.min.js',
+                'js/plugins-init/toastr-init.js',
 				'vendor/sweetalert2/dist/sweetalert2.min.js',
 				'vendor/datatables/js/jquery.dataTables.min.js',
 				'js/plugins-init/datatables.init.js',

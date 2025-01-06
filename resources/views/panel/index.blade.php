@@ -392,6 +392,7 @@
                 url: '{{ route("obtenerResumenGastosIngresos") }}',
                 method: 'GET',
                 success: function(response) {
+                    const pagosprop = parseFloat(response.pagosprop || 0).toFixed(2);
                     const ingresos = parseFloat(response.ingresos || 0).toFixed(2);
                     const egresos = parseFloat(response.egresos || 0).toFixed(2);
                     const saldo = parseFloat(response.saldo || 0).toFixed(2);
@@ -399,6 +400,7 @@
                     // Construir el mensaje del toastr
                     if(verpopup==1){
                         const mensaje = `
+                            Pagos: S/ ${pagosprop}<br>
                             Ingresos: S/ ${ingresos}<br>
                             Egresos: S/ ${egresos}<br>
                             Saldo: S/ ${saldo}<br>

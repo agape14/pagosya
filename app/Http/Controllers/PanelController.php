@@ -87,16 +87,18 @@ class PanelController extends Controller
 
     public function obtenerResumenGastosIngresos()
     {
-        $acumuladores = Acumulador::whereIn('id', [2, 3, 4])->get();
+        $acumuladores = Acumulador::whereIn('id', [2, 3, 4,6])->get();
         // Obtener los valores de ingresos y egresos
+        $pagosprop = $acumuladores->where('id', 6)->first()?->monto ?? 0;
         $ingresos = $acumuladores->where('id', 2)->first()?->monto ?? 0;
         $egresos = $acumuladores->where('id', 3)->first()?->monto ?? 0;
         $verpopup= $acumuladores->where('id', 4)->first()?->correlativo ?? 0; //0:no se ve; 1: si se ve
         // Calcular el saldo
-        $saldo = $ingresos - $egresos;
+        $saldo = ($pagosprop + $ingresos) - $egresos;
 
         // Retornar los datos en formato JSON
         return response()->json([
+            'pagosprop' => $pagosprop,
             'ingresos' => $ingresos,
             'egresos' => $egresos,
             'saldo' => $saldo,
