@@ -1,0 +1,220 @@
+/* Modern Custom CSS for Premium UI/UX */
+
+/* Global Glassmorphism & Modernization */
+body {
+    background-color: #f7fafe !important;
+    font-family: 'Poppins', sans-serif;
+    color: #455560;
+}
+
+/* Card Enhancements */
+.card {
+    border: none;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    /* transform: translateY(-2px); Conflict with Modals */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+.card-header {
+    background: transparent;
+    border-bottom: 2px solid #f0f2f5;
+    padding: 1.5rem;
+}
+
+.card-title {
+    font-weight: 600;
+    color: #343a40;
+    letter-spacing: -0.5px;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 10px 20px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    box-shadow: 0 4px 6px rgba(118, 75, 162, 0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    box-shadow: 0 6px 8px rgba(118, 75, 162, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Sidebar */
+.deznav {
+    background: #ffffff;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.metismenu>li {
+    transition: all 0.3s ease;
+}
+
+.metismenu>li>a {
+    border-radius: 8px;
+    margin: 5px 15px;
+    color: #6c757d;
+}
+
+.metismenu>li.mm-active>a,
+.metismenu>li:hover>a {
+    background: rgba(118, 75, 162, 0.1);
+    color: #764ba2;
+    font-weight: 600;
+}
+
+.metismenu>li.mm-active>a i,
+.metismenu>li:hover>a i {
+    color: #764ba2;
+}
+
+/* Inputs & Forms */
+.form-control {
+    border-radius: 8px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 12px 15px;
+    height: auto;
+}
+
+.form-control:focus {
+    border-color: #764ba2;
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.1);
+}
+
+/* Tables */
+.table {
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+
+.table thead th {
+    border: none;
+    font-weight: 600;
+    color: #a0aec0;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    padding: 15px;
+}
+
+.table tbody tr {
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s;
+}
+
+.table tbody tr:hover {
+    transform: scale(1.005);
+    background-color: #fafbfc;
+}
+
+.table td {
+    border: none;
+    padding: 15px;
+    vertical-align: middle;
+}
+
+/* Alerts */
+.alert {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Utils */
+.text-primary-gradient {
+    background: -webkit-linear-gradient(#667eea, #764ba2);
+    background-clip: text;
+    /* Standard */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.rounded-xl {
+    border-radius: 16px !important;
+}
+
+.shadow-soft {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+}
+
+/* Mobile Responsiveness Enhancements */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+
+    /* Ensure Brand Logo/Title is visible on Mobile */
+    .nav-header {
+        width: 100% !important;
+        /* Full width header on mobile */
+        z-index: 10 !important;
+        background: #fff;
+        /* Ensure it has background */
+    }
+
+    .nav-header .brand-logo {
+        display: flex !important;
+        padding-left: 20px;
+    }
+
+    .nav-header .brand-title {
+        display: block !important;
+        /* Force show */
+        font-size: 16px;
+        /* Adjust size if needed */
+        margin-left: 10px;
+    }
+
+    .nav-control {
+        right: 0 !important;
+        position: absolute;
+    }
+
+    /* Backdrop Blur Effect when Sidebar is Open */
+    /* Note: We rely on the .sidebar-open class on #main-wrapper or body */
+}
+
+/* Blur overlay for content when mobile sidebar is open */
+/* Assuming .sidebar-open is added to #main-wrapper when menu is active */
+@media (max-width: 768px) {
+    #main-wrapper.sidebar-open .content-body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.4);
+        /* Dark overlay */
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        z-index: 9;
+        /* Below sidebar (z-index 10+) but above content */
+        transition: all 0.3s ease;
+    }
+
+    /* Ensure Sidebar captures interactions */
+    .deznav {
+        z-index: 15 !important;
+    }
+}

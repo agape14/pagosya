@@ -91,9 +91,16 @@
                     </li>
                     @endif
 
-                    <li><a href="{!! url('/noticias'); !!}" class="ai-icon" aria-expanded="false">
-                            <i class="flaticon-381-television"></i>
+                    @if(Auth::user()->id_perfil <= 2)
+                    <li><a href="{!! url('/finanzas'); !!}" class="ai-icon" aria-expanded="false">
+                            <i class="flaticon-381-calculator"></i>
                             <span class="nav-text">Finanzas</span>
+                        </a>
+                    </li>
+                    @endif
+                    <li><a href="{!! url('/noticias'); !!}" class="ai-icon" aria-expanded="false">
+                            <i class="flaticon-381-internet"></i> <!-- Placeholder icon -->
+                            <span class="nav-text">Noticias</span>
                         </a>
                     </li>
                     {{--<li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">

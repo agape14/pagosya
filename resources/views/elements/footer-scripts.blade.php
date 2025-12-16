@@ -55,3 +55,4 @@ document.addEventListener('click', function(event) {
 });
 
 </script>
+@yield('scripts')

@@ -13,6 +13,7 @@ use App\Http\Controllers\TipoConceptoController;
 use App\Http\Controllers\IngresoController;
 use App\Http\Controllers\InteresBancarioController;
 use App\Http\Controllers\NoticiasController;
+use App\Http\Controllers\FinanzasController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\UsuarioController;
 /*
@@ -132,8 +133,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/widget-basic', 'App\Http\Controllers\ChrevadminController@widget_basic');
     */
 
+    // Finanzas (Old Noticias)
+    Route::get('/finanzas', [FinanzasController::class, 'index'])->name('finanzas');
+    Route::post('/acumuladores/actualizartotales', [FinanzasController::class, 'actualizarTotales'])->name('acumuladores.actualizarTotales');
+
+    // Noticias (New)
     Route::get('/noticias', [NoticiasController::class, 'noticias_index'])->name('noticias');
-    Route::post('/acumuladores/actualizartotales', [NoticiasController::class, 'actualizarTotales'])->name('acumuladores.actualizarTotales');
+    Route::post('/noticias', [NoticiasController::class, 'store'])->name('noticias.store');
 
     Route::get('/intbancario', [InteresBancarioController::class, 'intbancario_index'])->name('intbancario');
     Route::get('/intbancario/get', [InteresBancarioController::class, 'getIntbancarios'])->name('intbancario_get');

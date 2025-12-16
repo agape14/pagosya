@@ -26,7 +26,7 @@
 		@endforeach
 	@endif
 
-
+    <link href="{{ asset('css/modern-custom.css') }}" rel="stylesheet" type="text/css"/>
 </head>
 
 <body>

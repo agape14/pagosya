@@ -746,6 +746,8 @@ return [
 				'vendor/pickadate/picker.js',
 				'vendor/pickadate/picker.date.js',
 				'js/plugins-init/pickadate-init.js',
+                'vendor/apexchart/apexchart.js',
+
 
 				'js/custom.min.js',
 				'js/deznav-init.js',
@@ -921,23 +923,14 @@ return [
             ],
             'noticias_index' => [
                 'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
-                'vendor/chartist-plugin-tooltips/js/chartist-plugin-tooltip.min.js',
-                'vendor/flot-spline/jquery.flot.spline.min.js',
-                'vendor/jquery-sparkline/jquery.sparkline.min.js',
-                'vendor/sweetalert2/dist/sweetalert2.min.js',
                 'vendor/select2/js/select2.full.min.js',
-				'js/plugins-init/select2-init.js',
-				'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
-				'vendor/sweetalert2/dist/sweetalert2.min.js',
-				'vendor/datatables/js/jquery.dataTables.min.js',
-				'js/plugins-init/datatables.init.js',
-
-                'js/plugins-init/sparkline-init.js',
-                'js/plugins-init/widgets-script-init.js',
+                'js/plugins-init/select2-init.js',
+                'vendor/sweetalert2/dist/sweetalert2.min.js',
+                'vendor/datatables/js/jquery.dataTables.min.js',
+                'js/plugins-init/datatables.init.js',
                 'js/custom.min.js',
                 'js/deznav-init.js',
-
-			],
+            ],
             'index_video' => [
                 'vendor/jqueryui/js/jquery-ui.min.js',
 

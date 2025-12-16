@@ -8,16 +8,13 @@ use App\Models\PagoDetalle;
 use App\Models\Propietario;
 use App\Models\Acumulador;
 use App\Models\ProgramacionPago;
+use App\Models\Ingreso;
+use App\Models\Gasto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PanelController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function panel_index()
     {
         $page_title = 'Panel de Control';
@@ -31,6 +28,7 @@ class PanelController extends Controller
         $user = auth()->user();
         $propietario_user = Propietario::where('id_usuario', $user->id)->first();
         $contdeuda = 0;
+
         $query = ProgramacionPago::select(
             'programacion_pagos.id',
             'propietarios.departamento',
@@ -52,17 +50,20 @@ class PanelController extends Controller
         ->where('programacion_pagos.activo', '=', 1)
         ->where('conceptos.id_tipo_concepto', '=', 1)
         ->where('conceptos.activo', '=', 1);
+
         if($propietario_user ){
             $query->where('propietarios.id',$propietario_user->id);
         }else{
-            $query->where('propietarios.id',2);
+            if($user->id_perfil == 3) { // Fallback if no propietario linked but role is resident
+                 $query->where('propietarios.id', 0); // Force empty
+            }
         }
 
         $queryContador = clone $query;
         $queryContador->whereIn('estados_pagos.id', [1, 2, 4, 5]);
         $contdeuda = $queryContador->count();
 
-        $query->whereIn('estados_pagos.id', [1,2,3,4,5]);
+        $query->whereIn('estados_pagos.id', [1,2,3,4,5])->orderBy('programacion_pagos.created_at', 'desc');
         $detdeudas = $query->get();
 
         $detdeudas_con_observacion = collect();
@@ -82,168 +83,170 @@ class PanelController extends Controller
             $deuda->idpago = $idpago;
             $detdeudas_con_observacion->push($deuda);
         }
-        return view('panel.index', compact('page_title', 'page_description','action','logo','logoText', 'current_year','conceptos','contdeuda','detdeudas','detdeudas_con_observacion'));
-    }
 
-    public function obtenerResumenGastosIngresos()
-    {
-        $acumuladores = Acumulador::whereIn('id', [2, 3, 4,6])->get();
-        // Obtener los valores de ingresos y egresos
-        $pagosprop = $acumuladores->where('id', 6)->first()?->monto ?? 0;
-        $ingresos = $acumuladores->where('id', 2)->first()?->monto ?? 0;
-        $egresos = $acumuladores->where('id', 3)->first()?->monto ?? 0;
-        $verpopup= $acumuladores->where('id', 4)->first()?->correlativo ?? 0; //0:no se ve; 1: si se ve
-        // Calcular el saldo
-        $saldo = ($pagosprop + $ingresos) - $egresos;
+        // --- Live Financial Summary Calculation ---
+        $pagosprop = DB::table('pagos')->where('estado_id', 3)->sum('total');
+        $ingresos = DB::table('ingresos')->where('activo', 1)->sum('total');
+        $egresos = DB::table('gastos')->where('activo', 1)->sum('total');
+        $int_bancario = DB::table('intereses_bancarios')->where('estado', 1)->value('saldo_final') ?? 0;
 
-        // Retornar los datos en formato JSON
-        return response()->json([
-            'pagosprop' => $pagosprop,
-            'ingresos' => $ingresos,
-            'egresos' => $egresos,
-            'saldo' => $saldo,
-            'verpopup'=>$verpopup,
-        ]);
+        $total_pagos_prop = $pagosprop;
+        $total_ingresos_extra = $ingresos + $int_bancario; // Usually interes bancario counts as extra income
+        $total_egresos = $egresos;
+        $saldo_general = ($total_pagos_prop + $total_ingresos_extra) - $total_egresos;
+
+        return view('panel.index', compact(
+            'page_title',
+            'page_description',
+            'action',
+            'logo',
+            'logoText',
+            'current_year',
+            'conceptos',
+            'contdeuda',
+            'detdeudas',
+            'detdeudas_con_observacion',
+            'total_pagos_prop',
+            'total_ingresos_extra',
+            'total_egresos',
+            'saldo_general'
+        ));
     }
 
     public function obtenerDatosPorConcepto(Request $request)
     {
         $idConcepto = $request->idConcepto;
 
-        // Obtener los primeros 120 registros
-        $propietarios = Propietario::orderBy('id', 'asc')->take(120)->get();
+        if (!$idConcepto) {
+            return response()->json([
+                'error' => 'ID de concepto no proporcionado'
+            ], 400);
+        }
 
-        // Agrupar los propietarios por piso
+        // 1. Get ALL payments for this Concept PRIMERO (usando exactamente la misma lógica que PagoController)
+        // Consultar pagos activos con estado_id = 3 (pagado) para este concepto específico
+        // NO filtrar por propietarios aquí, obtener TODOS los pagos del concepto
+        $pagos = Pago::select(
+                'pagos.id',
+                'pagos.id_propietario',
+                'pagos.estado_id',
+                'pagos.total'
+            )
+            ->join('pagos_detalle', 'pagos.id', '=', 'pagos_detalle.id_pago')
+            ->join('conceptos', 'pagos_detalle.id_concepto', '=', 'conceptos.id')
+            ->where('pagos.activo', '=', 1)
+            ->where('pagos.estado_id', '=', 3) // Solo pagos confirmados (pagado)
+            ->where('conceptos.id', '=', $idConcepto) // Usar conceptos.id como en PagoController
+            ->where('conceptos.id_tipo_concepto', '=', 1)
+            ->where('conceptos.activo', '=', 1)
+            ->get()
+            ->unique('id')
+            ->values();
+
+        // 2. Obtener propietarios que tienen programación para este concepto
+        $propietariosIdsProgramacion = ProgramacionPago::select('programacion_pagos.id_propietario')
+            ->join('programacion_pagos_detalle', 'programacion_pagos.id', '=', 'programacion_pagos_detalle.id_programacion')
+            ->where('programacion_pagos.activo', 1)
+            ->where('programacion_pagos_detalle.id_concepto', $idConcepto)
+            ->distinct()
+            ->pluck('id_propietario');
+
+        // 3. Obtener IDs de propietarios que tienen pagos
+        $propietariosIdsConPagos = $pagos->pluck('id_propietario')->unique();
+
+        // 4. Combinar ambos: propietarios de programación + propietarios con pagos
+        $todosPropietariosIds = $propietariosIdsProgramacion->merge($propietariosIdsConPagos)->unique();
+
+        // 5. Obtener todos los propietarios (de programación + con pagos)
+        if ($todosPropietariosIds->isEmpty()) {
+            $propietarios = collect();
+        } else {
+            $propietarios = Propietario::whereIn('id', $todosPropietariosIds)
+                ->orderBy('departamento', 'asc')
+                ->get();
+        }
+
+        // 6. Group by Floor and convert to array format for JSON
+        // El cálculo del piso: floor(departamento / 100)
+        // Ejemplo: 1402 -> floor(1402/100) = 14, 1305 -> floor(1305/100) = 13
         $propietariosPorPiso = $propietarios->groupBy(function ($item) {
-            return floor($item->departamento / 100);
+            return (string)floor($item->departamento / 100);
+        })->map(function ($group) {
+            return $group->map(function ($propietario) {
+                return [
+                    'id' => $propietario->id,
+                    'departamento' => $propietario->departamento,
+                    'nombre' => $propietario->nombre,
+                    'apellido' => $propietario->apellido ?? ''
+                ];
+            })->values();
         });
 
-        $pagos = Pago::whereIn('id_propietario', $propietarios->pluck('id'))
-        ->with(['detalles' => function ($query) use ($idConcepto) {
-            $query->where('id_concepto', $idConcepto);
-        }])
-        ->get();
+        // Convert to array ensuring proper JSON serialization
+        $propietariosPorPisoArray = [];
+        foreach ($propietariosPorPiso as $piso => $propietariosGroup) {
+            $propietariosPorPisoArray[$piso] = $propietariosGroup->toArray();
+        }
 
-        // Calcular el porcentaje de propietarios que han pagado y los que deben
+        // Count Paid vs Due
         $totalPropietarios = $propietarios->count();
-        //$pagados = $pagos->where('estado_id', 3)->count();
-         // Filtrar los pagos donde los detalles tengan el idConcepto y el estado_id sea 3
-        $pagados = $pagos->filter(function ($pago) use ($idConcepto) {
-            return $pago->estado_id == 3 && $pago->detalles->contains('id_concepto', $idConcepto);
-        })->count();
+        // Contar propietarios únicos que tienen pagos confirmados para este concepto
+        $pagados = $pagos->unique('id_propietario')->count();
         $deben = $totalPropietarios - $pagados;
 
-        // Calcular los porcentajes
-        //$porcentajePagados = round(($pagados / $totalPropietarios) * 100, 2);
-        //$porcentajeDeben = round(($deben / $totalPropietarios) * 100, 2);
+        // Calculate Totals for this Concept (Filtered) - Solo pagos confirmados
+        // Asegurar que total sea numérico
+        $total_pagos_prop = $pagos->sum(function($pago) {
+            return (float)$pago->total;
+        });
+
+        // Calculate other incomes related to this concept
+        $total_ingresos_extra = DB::table('ingresos_detalle')
+            ->join('ingresos', 'ingresos_detalle.id_ingreso', '=', 'ingresos.id')
+            ->where('ingresos_detalle.id_concepto', $idConcepto)
+            ->where('ingresos.activo', 1)
+            ->sum('ingresos_detalle.monto');
+
+        // Calculate expenses related to this concept
+        $total_egresos = DB::table('gastos_detalle')
+            ->join('gastos', 'gastos_detalle.id_gasto', '=', 'gastos.id')
+            ->where('gastos_detalle.id_concepto', $idConcepto)
+            ->where('gastos.activo', 1)
+            ->sum('gastos_detalle.monto');
+
+        // Calculate interest for this concept period (if applicable)
+        $concepto = Concepto::find($idConcepto);
+        $int_bancario = 0;
+        if ($concepto) {
+            $int_bancario = DB::table('intereses_bancarios')
+                ->where('estado', 1)
+                ->where('anio', $concepto->anio ?? now()->year)
+                ->where('mes', $concepto->mes ?? now()->month)
+                ->sum('saldo_final') ?? 0;
+        }
+
+        $total_ingresos_extra += $int_bancario;
+        $saldo_general = ($total_pagos_prop + $total_ingresos_extra) - $total_egresos;
 
         $porcentajePagados = $totalPropietarios > 0 ? round(($pagados / $totalPropietarios) * 100, 2) : 0;
         $porcentajeDeben = $totalPropietarios > 0 ? round(($deben / $totalPropietarios) * 100, 2) : 0;
-        return response()->json([
-            'propietariosPorPiso' => $propietariosPorPiso,
-            'pagos' => $pagos,
-            'porcentajePagados' => $porcentajePagados,
-            'porcentajeDeben' => $porcentajeDeben
-        ]);
-    }
-
-    public function obtenerDatosPorcentajeConcepto(Request $request)
-    {
-        $idConcepto = $request->idConcepto;
-
-        // Obtener los primeros 120 registros
-        $propietarios = Propietario::orderBy('id', 'asc')->take(120)->get();
-
-        // Agrupar los propietarios por piso
-        $propietariosPorPiso = $propietarios->groupBy(function ($item) {
-            return floor($item->departamento / 100);
-        });
-
-        // Obtener los pagos para el concepto dado
-        $pagos = Pago::whereIn('id_propietario', $propietarios->pluck('id'))
-            ->with(['detalles' => function ($query) use ($idConcepto) {
-                $query->where('id_concepto', $idConcepto);
-            }])
-            ->get();
-
-        // Calcular el porcentaje de propietarios que han pagado y los que deben
-        $totalPropietarios = $propietarios->count();
-        $pagados = $pagos->where('estado_id', 3)->count();
-        $deben = $totalPropietarios - $pagados;
-
-        // Calcular los porcentajes
-        $porcentajePagados = ($pagados / $totalPropietarios) * 100;
-        $porcentajeDeben = ($deben / $totalPropietarios) * 100;
 
         return response()->json([
-            'propietariosPorPiso' => $propietariosPorPiso,
+            'propietariosPorPiso' => $propietariosPorPisoArray,
+            'pagos' => $pagos->map(function ($pago) {
+                return [
+                    'id' => $pago->id,
+                    'id_propietario' => $pago->id_propietario,
+                    'estado_id' => (int)$pago->estado_id,
+                    'total' => (float)$pago->total
+                ];
+            })->values()->toArray(),
             'porcentajePagados' => $porcentajePagados,
-            'porcentajeDeben' => $porcentajeDeben
+            'porcentajeDeben' => $porcentajeDeben,
+            'total_pagos_prop' => $total_pagos_prop,
+            'total_ingresos_extra' => $total_ingresos_extra,
+            'total_egresos' => $total_egresos,
+            'saldo_general' => $saldo_general
         ]);
-    }
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
     }
 }
