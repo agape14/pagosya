@@ -73,6 +73,9 @@
                             @if(in_array(config('permisos.permisos'), session('permisos_usuario')))
                                 <li><a href="{!! url('/permisos'); !!}">Permisos</a></li>
                             @endif
+                            @if(Auth::user()->id_perfil <= 2)
+                                <li><a href="{!! url('/whatsapp/config'); !!}"><i class="fa fa-whatsapp text-success mr-2"></i>WhatsApp</a></li>
+                            @endif
                         </ul>
                     </li>
                     @endif

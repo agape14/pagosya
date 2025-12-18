@@ -7,6 +7,7 @@ use App\Models\Propietario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Facades\Image;
 
 class NoticiasController extends Controller
 {
@@ -19,7 +20,7 @@ class NoticiasController extends Controller
         $action = __FUNCTION__;
 
         $noticias = Noticia::orderBy('created_at', 'desc')->paginate(9);
-        $propietarios = Propietario::whereNotNull('telefono')->get(); // For WhatsApp list
+        $propietarios = Propietario::with('codigoPais')->whereNotNull('telefono')->get(); // For WhatsApp list
 
         return view('noticias.index', compact(
             'page_title', 'page_description', 'action', 'logo', 'logoText',
@@ -42,8 +43,21 @@ class NoticiasController extends Controller
 
         if ($request->hasFile('imagen')) {
             $image = $request->file('imagen');
-            $name = time().'_'.uniqid().'.'.$image->getClientOriginalExtension();
-            $path = $image->storeAs('noticias', $name, 'public');
+            $name = time().'_'.uniqid().'.jpg'; // Siempre guardar como JPG optimizado
+
+            // Optimizar imagen: redimensionar y comprimir
+            $img = Image::make($image);
+
+            // Redimensionar manteniendo proporción (máximo 1200px de ancho)
+            $img->resize(1200, null, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize(); // No agrandar si es más pequeña
+            });
+
+            // Guardar con calidad 75% (buen balance entre calidad y peso)
+            $path = 'noticias/' . $name;
+            Storage::disk('public')->put($path, $img->encode('jpg', 75)->encoded);
+
             $noticia->imagen = $path;
         }
 

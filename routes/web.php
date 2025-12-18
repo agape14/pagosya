@@ -261,5 +261,18 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('tipos_concepto', TipoConceptoController::class);*/
 
     Route::post('/corregir-pagos', [PagoController::class, 'corregirPagos'])->name('corregir.pagos');
+
+    // WhatsApp Configuration
+    Route::prefix('whatsapp')->name('whatsapp.')->group(function () {
+        Route::get('/config', [App\Http\Controllers\WhatsAppConfigController::class, 'index'])->name('config');
+        Route::get('/status', [App\Http\Controllers\WhatsAppConfigController::class, 'status'])->name('status');
+        Route::get('/health', [App\Http\Controllers\WhatsAppConfigController::class, 'health'])->name('health');
+        Route::get('/qr', [App\Http\Controllers\WhatsAppConfigController::class, 'getQR'])->name('qr');
+        Route::post('/disconnect', [App\Http\Controllers\WhatsAppConfigController::class, 'disconnect'])->name('disconnect');
+        Route::post('/send', [App\Http\Controllers\WhatsAppConfigController::class, 'sendMessage'])->name('send');
+        Route::get('/logs', [App\Http\Controllers\WhatsAppConfigController::class, 'logs'])->name('logs');
+        Route::get('/groups', [App\Http\Controllers\WhatsAppConfigController::class, 'groups'])->name('groups');
+        Route::post('/send-group', [App\Http\Controllers\WhatsAppConfigController::class, 'sendToGroup'])->name('send.group');
+    });
 });
 Route::get('/videos', [VideoController::class, 'index_video'])->name('videos.index');
