@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\DB;
 use Twilio\Rest\Client;
 use App\Models\JuntaDirectiva;
 use App\Models\Acumulador;
+use App\Jobs\NotifyPaymentViaWhatsApp;
+use App\Models\WhatsappLog;
+use App\Services\WhatsAppService;
 
 class PagoController extends Controller
 {
@@ -502,6 +505,9 @@ class PagoController extends Controller
                 $this->recordAudit('AddPagos', 'Pago En partes: ' . $request->id);
                 DB::commit();
 
+                // Disparar Job de notificación WhatsApp
+                NotifyPaymentViaWhatsApp::dispatch($request->id, $pagoDetallePartes->id);
+
                 return response()->json(['success' => 'Voucher guardada correctamente.'], 200);
 
             }else{
@@ -552,6 +558,9 @@ class PagoController extends Controller
 
                 $this->recordAudit('Nuevo', 'Pago creado: ' . $pago->id);
                 DB::commit();
+
+                // Disparar Job de notificación WhatsApp
+                NotifyPaymentViaWhatsApp::dispatch($pago->id, $pagoDetalle->id);
 
                 return response()->json(['success' => 'Voucher guardada correctamente.'], 200);
             }
@@ -948,5 +957,129 @@ class PagoController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => 'Ocurrió un error: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Obtener logs de WhatsApp para DataTables
+     */
+    public function getWhatsAppLogs(Request $request)
+    {
+        $query = WhatsappLog::with('propietario')
+            ->orderBy('fecha', 'desc');
+
+        // Filtro por tipo
+        if ($request->has('tipo') && $request->tipo != '') {
+            $query->where('tipo', $request->tipo);
+        }
+
+        // Filtro por estado (fallido)
+        if ($request->has('solo_fallidos') && $request->solo_fallidos == '1') {
+            $query->where('status', 'fallido');
+        }
+
+        return DataTables::of($query)
+            ->addColumn('vecino', function ($log) {
+                if ($log->propietario) {
+                    return $log->propietario->departamento ?? 'N/A';
+                }
+                return 'N/A';
+            })
+            ->addColumn('tipo_display', function ($log) {
+                return $log->tipo == 'pago' ? 'Pago' : 'Noticia';
+            })
+            ->addColumn('mensaje_resumen', function ($log) {
+                return strlen($log->mensaje) > 50 
+                    ? substr($log->mensaje, 0, 50) . '...' 
+                    : $log->mensaje;
+            })
+            ->addColumn('estado_icono', function ($log) {
+                if ($log->status == 'enviado') {
+                    return '<span class="badge badge-success"><i class="fa fa-check-circle"></i> Enviado</span>';
+                } else {
+                    return '<span class="badge badge-danger"><i class="fa fa-times-circle"></i> Fallido</span>';
+                }
+            })
+            ->addColumn('fecha_formateada', function ($log) {
+                return $log->fecha ? $log->fecha->format('d/m/Y H:i:s') : 'N/A';
+            })
+            ->addColumn('acciones', function ($log) {
+                if ($log->status == 'fallido' && $log->tipo == 'pago' && $log->vecino_id) {
+                    // Buscar el pago más reciente del propietario relacionado con la fecha del log
+                    // Buscamos pagos creados en un rango de tiempo cercano al log (1 hora antes y después)
+                    if ($log->fecha) {
+                        $fechaInicio = (clone $log->fecha)->subHours(1);
+                        $fechaFin = (clone $log->fecha)->addHours(1);
+                        
+                        $pago = Pago::where('id_propietario', $log->vecino_id)
+                            ->whereBetween('created_at', [$fechaInicio, $fechaFin])
+                            ->orderBy('created_at', 'desc')
+                            ->first();
+                    } else {
+                        $pago = null;
+                    }
+
+                    // Si no encontramos en el rango, buscamos el más reciente
+                    if (!$pago) {
+                        $pago = Pago::where('id_propietario', $log->vecino_id)
+                            ->orderBy('created_at', 'desc')
+                            ->first();
+                    }
+
+                    if ($pago) {
+                        // Buscar el detalle más reciente del pago
+                        $pagoDetalle = PagoDetalle::where('id_pago', $pago->id)
+                            ->orderBy('created_at', 'desc')
+                            ->first();
+
+                        if ($pagoDetalle) {
+                            return '<button class="btn btn-sm btn-warning reenviar-notificacion" 
+                                    data-pago-id="' . $pago->id . '" 
+                                    data-pago-detalle-id="' . $pagoDetalle->id . '">
+                                    <i class="fa fa-refresh"></i> Reenviar
+                                </button>';
+                        }
+                    }
+                }
+                return '-';
+            })
+            ->rawColumns(['estado_icono', 'acciones'])
+            ->make(true);
+    }
+
+    /**
+     * Reenviar notificación de pago
+     */
+    public function reenviarNotificacionPago(Request $request)
+    {
+        $request->validate([
+            'pago_id' => 'required|integer|exists:pagos,id',
+            'pago_detalle_id' => 'required|integer|exists:pagos_detalle,id'
+        ]);
+
+        try {
+            // Despachar el Job nuevamente
+            NotifyPaymentViaWhatsApp::dispatch($request->pago_id, $request->pago_detalle_id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Notificación programada para reenvío'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Error al programar reenvío: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Verificar estado del servicio WhatsApp
+     */
+    public function verificarServicioWhatsApp()
+    {
+        $whatsappService = new WhatsAppService();
+        $health = $whatsappService->healthCheck();
+        
+        return response()->json($health);
     }
 }

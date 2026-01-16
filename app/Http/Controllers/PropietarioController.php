@@ -33,16 +33,42 @@ class PropietarioController extends Controller
         return view('propietarios.index', compact('propietarios', 'torres','tipos_subprop', 'page_title', 'page_description','action','paises'));
     }
 
-    public function getPropietarios()
+    public function getPropietarios(Request $request)
     {
         $idTorre = env('ID_TORRE_SISTEMA', 7);
         // Obtener los IDs de los propietarios que ya tienen subpropietarios
         $idsPropietariosConSubPropietarios = SubPropietario::pluck('sub_propietario_id')->toArray();
-        //dd($idTorre);
+        
         $propietarios = Propietario::where('id_torre', $idTorre)
             ->whereNotIn('id', $idsPropietariosConSubPropietarios)
-            ->select('propietarios.id','propietarios.nombre', 'propietarios.apellido', 'propietarios.correo_electronico', 'propietarios.telefono', 'propietarios.departamento')
-            ->get();
+            ->select('propietarios.id','propietarios.nombre', 'propietarios.apellido', 'propietarios.correo_electronico', 'propietarios.telefono', 'propietarios.departamento');
+
+        // Aplicar filtro por estado de morosidad si se proporciona
+        $estado = $request->get('estado');
+        if (in_array($estado, ['verde', 'amarillo', 'rojo', 'critico'])) {
+            // Obtener IDs de propietarios por estado usando PanelController
+            $panelController = new \App\Http\Controllers\PanelController();
+            $semaforo = $panelController->calcularSemaforoMorosidad();
+            
+            $idsFiltrados = [];
+            if ($estado === 'critico') {
+                $estado = 'rojo'; // Normalizar 'critico' a 'rojo'
+            }
+            
+            if (isset($semaforo[$estado]['propietarios'])) {
+                $idsFiltrados = collect($semaforo[$estado]['propietarios'])->pluck('id')->toArray();
+            }
+            
+            if (!empty($idsFiltrados)) {
+                $propietarios->whereIn('propietarios.id', $idsFiltrados);
+            } else {
+                // Si no hay resultados, devolver query vacía
+                $propietarios->whereRaw('1 = 0');
+            }
+        }
+
+        $propietarios = $propietarios->get();
+        
         return DataTables::of($propietarios)
             ->addColumn('action', function ($row) {
                 $btn = '<div class="d-flex">';

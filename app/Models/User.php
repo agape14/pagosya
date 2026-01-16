@@ -8,11 +8,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
-use Laravel\Sanctum\HasApiTokens;
+// use Laravel\Sanctum\HasApiTokens; // Comentado: Sanctum no está disponible, el proyecto usa modelo Usuario
 
 class User extends Authenticatable
 {
-    use HasApiTokens;
+    // use HasApiTokens; // Comentado: Sanctum no está disponible, el proyecto usa modelo Usuario
     use HasFactory;
     use HasProfilePhoto;
     use Notifiable;

@@ -161,22 +161,89 @@
 							</div>
 						</div>
 						<div class="card-body  p-2">
-							<div class="table-responsive">
-								<table class="table table-responsive-md mt-2" id="tblPago">
-									<thead>
-										<tr>
-											<th class="width50">#</th>
-											<th>Departamento</th>
-											<th>Concepto</th>
-											<th>Total</th>
-											<th>Fecha</th>
-											<th>Estado</th>
-											<th>Acciones</th> <!-- Añadir la columna de acciones aquí -->
-										</tr>
-									</thead>
-									<tbody>
-									</tbody>
-								</table>
+							<!-- Nav tabs -->
+							<div class="default-tab">
+								<ul class="nav nav-tabs" role="tablist">
+									<li class="nav-item">
+										<a class="nav-link active" data-toggle="tab" href="#pagos-tab"><i class="fa fa-money mr-2"></i> Pagos</a>
+									</li>
+									<li class="nav-item">
+										<a class="nav-link" data-toggle="tab" href="#whatsapp-logs-tab"><i class="fa fa-whatsapp mr-2"></i> Logs de WhatsApp</a>
+									</li>
+								</ul>
+								<div class="tab-content">
+									<div class="tab-pane fade show active" id="pagos-tab" role="tabpanel">
+										<div class="pt-4">
+											<div class="table-responsive">
+												<table class="table table-responsive-md mt-2" id="tblPago">
+													<thead>
+														<tr>
+															<th class="width50">#</th>
+															<th>Departamento</th>
+															<th>Concepto</th>
+															<th>Total</th>
+															<th>Fecha</th>
+															<th>Estado</th>
+															<th>Acciones</th> <!-- Añadir la columna de acciones aquí -->
+														</tr>
+													</thead>
+													<tbody>
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+									<div class="tab-pane fade" id="whatsapp-logs-tab" role="tabpanel">
+										<div class="pt-4">
+											<!-- Alerta de servicio desconectado -->
+											<div id="whatsapp-service-alert" class="alert alert-warning d-none" role="alert">
+												⚠️ El servicio de WhatsApp está desconectado. Los reintentos fallarán.
+											</div>
+											
+											<!-- Filtros -->
+											<div class="row mb-3">
+												<div class="col-md-3">
+													<label class="form-label">Filtrar por Tipo:</label>
+													<select class="form-control" id="filtroTipoWhatsApp">
+														<option value="">Todos</option>
+														<option value="pago">Pago</option>
+														<option value="noticia">Noticia</option>
+													</select>
+												</div>
+												<div class="col-md-3">
+													<label class="form-label">Filtros Rápidos:</label>
+													<select class="form-control" id="filtroRapidoWhatsApp">
+														<option value="">Todos</option>
+														<option value="fallidos">Solo Fallidos</option>
+													</select>
+												</div>
+												<div class="col-md-3 d-flex align-items-end">
+													<button class="btn btn-primary" id="btnAplicarFiltrosWhatsApp">
+														<i class="fa fa-filter"></i> Aplicar Filtros
+													</button>
+												</div>
+											</div>
+											
+											<!-- Tabla de logs -->
+											<div class="table-responsive">
+												<table class="table table-responsive-md mt-2" id="tblWhatsAppLogs">
+													<thead>
+														<tr>
+															<th>Vecino</th>
+															<th>Tipo</th>
+															<th>Mensaje</th>
+															<th>Estado</th>
+															<th>Fecha</th>
+															<th>Acciones</th>
+														</tr>
+													</thead>
+													<tbody>
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
 							<div class="modal fade" id="AddPagoModal" tabindex="-1" aria-labelledby="AddPagoModalLabel-1" aria-hidden="true">
 								<div class="modal-dialog">
@@ -684,5 +751,87 @@
                 }
             });
         });
+
+		// Verificar estado del servicio WhatsApp al cargar la página
+		$.get('{{ route('pagos.whatsapp.logs.verificar') }}', function(data) {
+			if (!data.alive) {
+				$('#whatsapp-service-alert').removeClass('d-none');
+			}
+		});
+
+		// Inicializar tabla de logs de WhatsApp
+		var tblWhatsAppLogs = $('#tblWhatsAppLogs').DataTable({
+			processing: true,
+			serverSide: true,
+			language: {url: '/datatables/spanish.json'},
+			ajax: {
+				url: '{{ route('pagos.whatsapp.logs.data') }}',
+				data: function(d) {
+					d.tipo = $('#filtroTipoWhatsApp').val();
+					d.solo_fallidos = $('#filtroRapidoWhatsApp').val() == 'fallidos' ? '1' : '';
+				}
+			},
+			columns: [
+				{ data: 'vecino', name: 'vecino' },
+				{ data: 'tipo_display', name: 'tipo_display' },
+				{ data: 'mensaje_resumen', name: 'mensaje_resumen' },
+				{ data: 'estado_icono', name: 'estado_icono', orderable: false, searchable: false },
+				{ data: 'fecha_formateada', name: 'fecha_formateada' },
+				{ data: 'acciones', name: 'acciones', orderable: false, searchable: false }
+			],
+			order: [[4, 'desc']] // Ordenar por fecha descendente
+		});
+
+		// Aplicar filtros
+		$('#btnAplicarFiltrosWhatsApp').on('click', function() {
+			tblWhatsAppLogs.draw();
+		});
+
+		// Reenviar notificación
+		$(document).on('click', '.reenviar-notificacion', function() {
+			var btn = $(this);
+			var pagoId = btn.data('pago-id');
+			var pagoDetalleId = btn.data('pago-detalle-id');
+			
+			btn.prop('disabled', true);
+			
+			$.ajax({
+				url: '{{ route('pagos.whatsapp.logs.reenviar') }}',
+				method: 'POST',
+				data: {
+					_token: '{{ csrf_token() }}',
+					pago_id: pagoId,
+					pago_detalle_id: pagoDetalleId
+				},
+				success: function(response) {
+					if (response.success) {
+						swal("Éxito!", response.message, "success");
+						tblWhatsAppLogs.draw();
+					} else {
+						swal("Error!", response.error || 'Ocurrió un error', "error");
+					}
+					btn.prop('disabled', false);
+				},
+				error: function(xhr) {
+					var errorMsg = 'Ocurrió un error';
+					if (xhr.responseJSON && xhr.responseJSON.error) {
+						errorMsg = xhr.responseJSON.error;
+					}
+					swal("Error!", errorMsg, "error");
+					btn.prop('disabled', false);
+				}
+			});
+		});
+
+		// Verificar servicio cuando se cambia al tab de logs
+		$('a[href="#whatsapp-logs-tab"]').on('shown.bs.tab', function() {
+			$.get('{{ route('pagos.whatsapp.logs.verificar') }}', function(data) {
+				if (!data.alive) {
+					$('#whatsapp-service-alert').removeClass('d-none');
+				} else {
+					$('#whatsapp-service-alert').addClass('d-none');
+				}
+			});
+		});
 	});
 </script>

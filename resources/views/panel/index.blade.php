@@ -175,6 +175,98 @@
             </div>
         </div>
 
+        <!-- Semáforo de Morosidad -->
+        @if(isset($semaforo_morosidad) && $semaforo_morosidad)
+        <div class="row mb-4">
+            <div class="col-xl-12">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header border-0 pb-0">
+                        <h4 class="card-title">Semáforo de Morosidad</h4>
+                        <p class="mb-0 text-muted fs-12">Estado de pagos de los vecinos</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Tarjeta Verde: Al Día -->
+                            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 mb-3">
+                                <div class="card border-left-success shadow-sm h-100 cursor-pointer" 
+                                     id="cardVerde" 
+                                     data-estado="verde"
+                                     style="border-left: 4px solid #28a745 !important; cursor: pointer; transition: all 0.3s;">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <i class="fa fa-check-circle fa-3x text-success"></i>
+                                            </div>
+                                            <div class="flex-grow-1 ml-3">
+                                                <h5 class="mb-1 text-success font-w600">Vecinos al Día</h5>
+                                                <h2 class="mb-0 text-dark">{{ $semaforo_morosidad['verde']['cantidad'] }}/{{ $semaforo_morosidad['total_propietarios'] }}</h2>
+                                                <small class="text-muted">{{ $semaforo_morosidad['verde']['porcentaje'] }}% del total</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tarjeta Amarilla: En Mora -->
+                            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 mb-3">
+                                <div class="card border-left-warning shadow-sm h-100 cursor-pointer" 
+                                     id="cardAmarilla" 
+                                     data-estado="amarillo"
+                                     style="border-left: 4px solid #ffc107 !important; cursor: pointer; transition: all 0.3s;">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <i class="fa fa-clock fa-3x text-warning"></i>
+                                            </div>
+                                            <div class="flex-grow-1 ml-3">
+                                                <h5 class="mb-1 text-warning font-w600">Deuda Pendiente</h5>
+                                                <h2 class="mb-0 text-dark">{{ $semaforo_morosidad['amarillo']['cantidad'] }}</h2>
+                                                <small class="text-muted">Monto: S/ {{ number_format($semaforo_morosidad['amarillo']['monto_total'], 2) }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tarjeta Roja: Crítico -->
+                            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 mb-3">
+                                <div class="card border-left-danger shadow-sm h-100 cursor-pointer" 
+                                     id="cardRoja" 
+                                     data-estado="rojo"
+                                     style="border-left: 4px solid #dc3545 !important; cursor: pointer; transition: all 0.3s;">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <i class="fa fa-exclamation-triangle fa-3x text-danger"></i>
+                                            </div>
+                                            <div class="flex-grow-1 ml-3">
+                                                <h5 class="mb-1 text-danger font-w600">Morosidad Crítica</h5>
+                                                <h2 class="mb-0 text-dark">{{ $semaforo_morosidad['rojo']['cantidad'] }}</h2>
+                                                <small class="text-muted">{{ $semaforo_morosidad['rojo']['porcentaje'] }}% del total</small>
+                                                <div class="mt-2">
+                                                    <a href="{{ route('propietarios') }}?estado=critico" 
+                                                       class="btn btn-danger btn-sm">
+                                                        <i class="fa fa-list mr-1"></i> Ver Lista de Cobranza
+                                                    </a>
+                                                    @if($semaforo_morosidad['rojo']['cantidad'] > 0)
+                                                    <a href="{{ route('notificacion.masiva.criticos') }}" 
+                                                       class="btn btn-outline-danger btn-sm ml-1">
+                                                        <i class="fa fa-bell mr-1"></i> Notificar Masivo
+                                                    </a>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <div class="row mb-4">
             <div class="col-xl-12">
                 <div class="card shadow-sm">
@@ -808,6 +900,27 @@
             window.myFloorChart = new ApexCharts(document.querySelector("#chartByFloor"), options);
             window.myFloorChart.render();
         }
+
+        // --- Interactividad Semáforo de Morosidad ---
+        $('#cardVerde, #cardAmarilla, #cardRoja').on('click', function() {
+            var estado = $(this).data('estado');
+            if (estado) {
+                // Redirigir a propietarios con filtro de estado
+                window.location.href = '{{ route("propietarios") }}?estado=' + estado;
+            }
+        });
+
+        // Efecto hover en las tarjetas del semáforo
+        $('#cardVerde, #cardAmarilla, #cardRoja').hover(
+            function() {
+                $(this).css('transform', 'translateY(-5px)');
+                $(this).css('box-shadow', '0 4px 8px rgba(0,0,0,0.15)');
+            },
+            function() {
+                $(this).css('transform', 'translateY(0)');
+                $(this).css('box-shadow', '0 2px 4px rgba(0,0,0,0.1)');
+            }
+        );
 
         // --- Event Handlers from Original Code (Refined) ---
 

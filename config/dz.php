@@ -256,6 +256,11 @@ return [
 							'vendor/pickadate/themes/default.css',
 							'vendor/pickadate/themes/default.date.css',
 						],
+				'finanzas_index' => [
+					'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
+					'vendor/sweetalert2/dist/sweetalert2.min.css',
+					'vendor/datatables/css/jquery.dataTables.min.css',
+						],
 				'uc_nestable' => [
               'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
 							'vendor/nestable2/css/jquery.nestable.min.css',
@@ -781,6 +786,14 @@ return [
 				'vendor/pickadate/picker.date.js',
 				'js/plugins-init/pickadate-init.js',
 
+				'js/custom.min.js',
+				'js/deznav-init.js',
+					],
+			'finanzas_index' => [
+				'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
+				'vendor/sweetalert2/dist/sweetalert2.min.js',
+				'vendor/datatables/js/jquery.dataTables.min.js',
+				'js/plugins-init/datatables.init.js',
 				'js/custom.min.js',
 				'js/deznav-init.js',
 					],

@@ -1,0 +1,67 @@
+# Reglas para Proyecto PagosYa (Administración de Condominios)
+
+## Contexto Tecnológico
+- **Backend:** Laravel 8.x, PHP 7.3+/8.0+
+- **Frontend:** Blade + Livewire, DataTables (Yajra), jQuery
+- **Microservicio:** Node.js 18+ (whatsapp-service) con Express y whatsapp-web.js
+- **Arquitectura:** Laravel actúa como cliente HTTP hacia el microservicio de WhatsApp
+- **Base de datos:** MySQL/MariaDB
+- **PDF:** DomPDF para generación de recibos
+
+## Estructura del Proyecto
+- `app/Services/WhatsAppService.php` - Cliente HTTP para comunicación con microservicio
+- `app/Http/Controllers/WhatsAppConfigController.php` - Gestión de configuración WhatsApp
+- `whatsapp-service/` - Microservicio Node.js independiente
+- `app/Models/WhatsappLog.php` - Modelo para logs de mensajes
+
+## Reglas de Codificación
+
+### General
+- Usar convenciones de Laravel: Eloquent ORM, Form Requests, Service Classes
+- Controladores en español siguiendo patrón existente (ej: `propietarios_index`, `getTblPagos`)
+- Rutas agrupadas por funcionalidad con prefijos y nombres (ej: `whatsapp.config`)
+
+### Notificaciones WhatsApp
+- Siempre verificar `WhatsAppService::isConnected()` antes de intentar envíos
+- Procesos de envío masivo DEBEN ir en Jobs (`Queueable`) para no bloquear requests
+- Todas las llamadas al microservicio incluyen Header `X-API-KEY` (ver `getHeaders()`)
+- Formato de números: limpiar caracteres no numéricos y asegurar prefijo país (51 para Perú)
+- **Números inválidos:** Excluir propietarios con teléfonos `000000000` o vacíos. Si todos los números del propietario son inválidos, omitirlo de la notificación
+- Registrar cada intento en tabla `whatsapp_logs` con estado: 'enviado' o 'fallido'
+
+### Lógica de Negocio
+- **Pagos:** Modelo `Pago` relacionado con `Propietario`, `PagoDetalle`, `EstadoPago`
+- **Pagos Parciales:** Calcular saldo restante sumando montos en `pagos_evidencias` vs total
+- **Programación:** Los pagos se generan desde `ProgramacionPago` con sus detalles
+- **Estados:** Usar tabla `estados_pagos` para control de estados de pago
+
+### Seguridad
+- Middleware `auth` obligatorio para todas las rutas excepto login y videos
+- Variables sensibles en `.env`: `WHATSAPP_SERVICE_URL`, `WHATSAPP_API_KEY`
+- El microservicio valida API Key via middleware `apiKeyAuth`
+
+## Configuración de Servicios
+
+### Laravel (.env)
+```
+WHATSAPP_SERVICE_URL=http://127.0.0.1:3000
+WHATSAPP_API_KEY=tu_api_key_segura
+```
+
+### Node.js (whatsapp-service/.env)
+```
+PORT=3000
+API_KEY=tu_api_key_segura
+NODE_ENV=production
+```
+
+## Convenciones de Rutas
+- Prefijo `/whatsapp` para todas las rutas de WhatsApp
+- GET para consultas (`/status`, `/qr`, `/groups`)
+- POST para acciones (`/send`, `/disconnect`, `/send-group`)
+
+## Manejo de Errores
+- Capturar excepciones en try-catch con logging (`Log::error`)
+- Devolver respuestas consistentes: `['success' => bool, 'error' => string]`
+- El microservicio registra errores en `whatsapp-service/logs/`
+

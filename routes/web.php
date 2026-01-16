@@ -198,6 +198,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/confirmar-evidencia', [PagoController::class, 'confirmarEvidencia'])->name('confirmar.evidencia');
     Route::get('/pagos/{id}/pdf', [PagoController::class, 'generatePDF'])->name('pagos.pdf');
     Route::post('/guardar-evidenciamultiple', [PagoController::class, 'guardarEvidenciaMultiple'])->name('guardar.evidenciamultiple');
+    Route::get('/pagos/whatsapp-logs/data', [PagoController::class, 'getWhatsAppLogs'])->name('pagos.whatsapp.logs.data');
+    Route::post('/pagos/whatsapp-logs/reenviar', [PagoController::class, 'reenviarNotificacionPago'])->name('pagos.whatsapp.logs.reenviar');
+    Route::get('/pagos/whatsapp-logs/verificar-servicio', [PagoController::class, 'verificarServicioWhatsApp'])->name('pagos.whatsapp.logs.verificar');
 
     Route::get('/gastos', [GastoController::class, 'gastos_index'])->name('gastos');
     Route::get('/gastos/data', [GastoController::class, 'getTblGastos'])->name('gastos.data');
@@ -219,6 +222,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/getdatosxconcepto', [PanelController::class, 'obtenerDatosPorConcepto'])->name('obtenerDatosPorConcepto');
     Route::get('/getdatosporcentconcepto', [PanelController::class, 'obtenerDatosPorcentajeConcepto'])->name('obtenerDatosPorcentajeConcepto');
     Route::get('/resumen-gastos-ingresos', [PanelController::class, 'obtenerResumenGastosIngresos'])->name('obtenerResumenGastosIngresos');
+    Route::get('/notificacion-masiva-criticos', [PanelController::class, 'notificacionMasivaCriticos'])->name('notificacion.masiva.criticos');
+    Route::post('/notificacion-masiva-criticos/enviar', [PanelController::class, 'enviarNotificacionMasivaCriticos'])->name('notificacion.masiva.criticos.enviar');
 
 
     Route::get('/usuarios', [PanelController::class, 'panel_index'])->name('panel');

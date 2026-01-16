@@ -17,6 +17,26 @@
             <div class="card">
                 <div class="card-header">
                     <h4 class="card-title">Propietarios</h4>
+                    @if(request('estado'))
+                        <div class="mt-2">
+                            @php
+                                $estadoLabels = [
+                                    'verde' => ['label' => 'Vecinos al Día', 'class' => 'success'],
+                                    'amarillo' => ['label' => 'Deuda Pendiente', 'class' => 'warning'],
+                                    'rojo' => ['label' => 'Morosidad Crítica', 'class' => 'danger'],
+                                    'critico' => ['label' => 'Morosidad Crítica', 'class' => 'danger']
+                                ];
+                                $estadoActual = request('estado');
+                                $estadoInfo = $estadoLabels[$estadoActual] ?? ['label' => 'Filtrado', 'class' => 'info'];
+                            @endphp
+                            <span class="badge badge-{{ $estadoInfo['class'] }} badge-lg">
+                                Filtrado: {{ $estadoInfo['label'] }}
+                            </span>
+                            <a href="{{ route('propietarios') }}" class="btn btn-sm btn-outline-secondary ml-2">
+                                <i class="fa fa-times"></i> Limpiar Filtro
+                            </a>
+                        </div>
+                    @endif
                 </div>
                 <div class="card-body">
                     <div class="form-head d-flex mb-2 mb-md-2 align-items-start">
@@ -279,7 +299,12 @@
                 processing: true,
                 serverSide: true,
                 language: {url: '/datatables/spanish.json'},
-                ajax: '{{ route('propietarios_get') }}',
+                ajax: {
+                    url: '{{ route('propietarios_get') }}',
+                    data: function(d) {
+                        d.estado = '{{ request('estado') }}';
+                    }
+                },
                 columns: [
                     { data: 'departamento', name: 'departamento' },
                     { data: 'nombre', name: 'nombre' },
