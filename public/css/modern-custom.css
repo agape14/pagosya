@@ -218,3 +218,72 @@ body {
         z-index: 15 !important;
     }
 }
+
+/* Mi Cuenta Button Styling - Visible in Mobile */
+.metismenu > li > a[href*="/cuenta"] {
+    background-color: rgba(102, 126, 234, 0.1) !important;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    margin-top: 15px !important;
+}
+
+.metismenu > li > a[href*="/cuenta"]:hover {
+    background-color: rgba(102, 126, 234, 0.15) !important;
+    border-color: rgba(102, 126, 234, 0.3);
+    transform: translateX(3px);
+}
+
+.metismenu > li > a[href*="/cuenta"] svg {
+    stroke: #667eea;
+}
+
+.metismenu > li > a[href*="/cuenta"] .nav-text {
+    color: #667eea !important;
+}
+
+/* Logout Button Styling - Visible in Mobile */
+.metismenu > li > a[href*="cerrarsesion"] {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+    margin-top: 10px !important;
+}
+
+.metismenu > li > a[href*="cerrarsesion"]:hover {
+    background-color: rgba(220, 53, 69, 0.15) !important;
+    border-color: rgba(220, 53, 69, 0.3);
+    transform: translateX(3px);
+}
+
+.metismenu > li > a[href*="cerrarsesion"] svg {
+    stroke: #dc3545;
+}
+
+.metismenu > li > a[href*="cerrarsesion"] .nav-text {
+    color: #dc3545 !important;
+}
+
+/* Extra visibility on mobile devices */
+@media (max-width: 767px) {
+    .metismenu > li > a[href*="/cuenta"] {
+        background-color: rgba(102, 126, 234, 0.15) !important;
+        font-size: 16px !important;
+        padding: 15px 20px !important;
+        border: 2px solid rgba(102, 126, 234, 0.3);
+    }
+    
+    .metismenu > li > a[href*="/cuenta"] .nav-text {
+        font-weight: 700 !important;
+        font-size: 15px !important;
+    }
+    
+    .metismenu > li > a[href*="cerrarsesion"] {
+        background-color: rgba(220, 53, 69, 0.15) !important;
+        font-size: 16px !important;
+        padding: 15px 20px !important;
+        border: 2px solid rgba(220, 53, 69, 0.3);
+    }
+    
+    .metismenu > li > a[href*="cerrarsesion"] .nav-text {
+        font-weight: 700 !important;
+        font-size: 15px !important;
+    }
+}

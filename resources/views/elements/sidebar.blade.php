@@ -94,7 +94,7 @@
                     </li>
                     @endif
 
-                    @if(Auth::user()->id_perfil <= 2)
+                    @if(Auth::user()->id_perfil <= 3)
                     <li><a href="{!! url('/finanzas'); !!}" class="ai-icon" aria-expanded="false">
                             <i class="flaticon-381-calculator"></i>
                             <span class="nav-text">Finanzas</span>
@@ -104,6 +104,25 @@
                     <li><a href="{!! url('/noticias'); !!}" class="ai-icon" aria-expanded="false">
                             <i class="flaticon-381-internet"></i> <!-- Placeholder icon -->
                             <span class="nav-text">Noticias</span>
+                        </a>
+                    </li>
+
+                    <li><a href="{!! url('/cuenta'); !!}" class="ai-icon" aria-expanded="false">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span class="nav-text text-primary font-weight-bold">Mi Cuenta</span>
+                        </a>
+                    </li>
+
+                    <li><a href="{{ route('cerrarsesion') }}" class="ai-icon" aria-expanded="false">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            <span class="nav-text text-danger font-weight-bold">Cerrar Sesión</span>
                         </a>
                     </li>
                     {{--<li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">

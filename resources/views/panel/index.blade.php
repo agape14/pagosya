@@ -15,7 +15,7 @@
                             <p class="text-muted mb-0">Esta es tu información de pagos y deudas.</p>
                         </div>
                         <div>
-                            <span class="badge badge-xl light badge-primary">{{ now()->format('d M Y') }}</span>
+                            <span class="badge badge-xl light badge-primary">{{ now()->locale('es')->translatedFormat('d M Y') }}</span>
                         </div>
                     </div>
                 </div>
@@ -24,85 +24,20 @@
             <div class="col-xl-12">
                 <div class="card">
                     <div class="card-header border-0 pb-0">
-                        <h4 class="card-title">Estado de Cuenta</h4>
+                        <h4 class="card-title">Información de Cuenta</h4>
                     </div>
-                    <div class="card-body">
-                        @if ($contdeuda === 0)
-                            <div class="alert alert-success solid alert-dismissible fade show">
-                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                <strong>¡Excelente!</strong> No tienes deudas pendientes.
-                            </div>
-                        @else
-                            <div class="alert {{ $contdeuda >= 3 ? 'alert-danger' : 'alert-warning' }} solid alert-dismissible fade show">
-                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                                <strong>Atención!</strong> Tienes {{ $contdeuda }} pago(s) pendiente(s).
-                            </div>
-                        @endif
-
-                        <div class="table-responsive">
-                            <table class="table table-responsive-md table-hover" id="tblEstadoCuenta">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Concepto</th>
-                                        <th>Periodo</th>
-                                        <th class="text-right">Monto</th>
-                                        <th>Estado</th>
-                                        <th class="text-center">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @php $contador = 1; $totalGeneral = 0; @endphp
-                                    @foreach ($detdeudas_con_observacion as $detdeuda)
-                                        <tr>
-                                            <td><strong>{{ $contador }}</strong></td>
-                                            <td>
-                                                <span class="d-block font-w600">{{ $detdeuda->descripcion_concepto }}</span>
-                                                <small class="text-muted">{{ $detdeuda->observacion ?? '' }}</small>
-                                            </td>
-                                            <td>{{ $detdeuda->nombremes ?? '--' }} {{ $detdeuda->anio }}</td>
-                                            <td class="text-right text-primary font-w600">S/ {{ number_format($detdeuda->total, 2) }}</td>
-                                            <td>
-                                                @if($detdeuda->idestado == 1 || $detdeuda->idestado == 2 || $detdeuda->idestado == 4 || $detdeuda->idestado == 5)
-                                                    <span class="badge badge-rounded badge-danger">Pendiente</span>
-                                                @elseif($detdeuda->idestado == 3)
-                                                    <span class="badge badge-rounded badge-success">Pagado</span>
-                                                @else
-                                                    <span class="badge badge-rounded badge-warning">{{ $detdeuda->estado }}</span>
-                                                @endif
-                                            </td>
-                                            <td class="text-center">
-                                                @if($detdeuda->idestado == 1 || $detdeuda->idestado == 4 || $detdeuda->idestado == 5) <!-- Pendiente/Vencido -->
-                                                    <a href="javascript:void(0)"
-                                                        data-id="{{ $detdeuda->id }}"
-                                                        data-idestado="{{ $detdeuda->idestado }}"
-                                                        data-departamento="{{ $detdeuda->departamento }}"
-                                                        data-concepto="{{ $detdeuda->descripcion_concepto }}"
-                                                        data-total="{{ $detdeuda->total }}"
-                                                        class="btn btn-primary btn-sm px-4 addPago shadow">
-                                                        <i class="fa fa-upload mr-2"></i> Pagar
-                                                    </a>
-                                                @endif
-                                                @if($detdeuda->idestado == 3) <!-- Pagado -->
-                                                    <a href="javascript:void(0)" data-id="{{ $detdeuda->idpago }}"
-                                                       class="btn btn-outline-success btn-sm verPdfPago">
-                                                       <i class="fa fa-download mr-1"></i> Recibo
-                                                    </a>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        @php $contador++; $totalGeneral += $detdeuda->total; @endphp
-                                    @endforeach
-                                </tbody>
-                                <tfoot>
-                                    <tr class="bg-light">
-                                        <td colspan="3" class="text-right font-w600">Total a Pagar:</td>
-                                        <td class="text-right"><strong class="text-primary fs-18">S/ {{ number_format($totalGeneral, 2) }}</strong></td>
-                                        <td colspan="2"></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <i class="flaticon-381-calculator text-primary" style="font-size: 64px;"></i>
                         </div>
+                        <h3 class="mb-3">Finanzas de la Torre</h3>
+                        <p class="text-muted mb-4">
+                            Accede a la información financiera completa de la torre:
+                            ingresos, gastos y saldo disponible del condominio.
+                        </p>
+                        <a href="{!! url('/finanzas'); !!}" class="btn btn-primary btn-lg px-5">
+                            <i class="flaticon-381-calculator mr-2"></i> Ver Finanzas de la Torre
+                        </a>
                     </div>
                 </div>
             </div>
@@ -188,8 +123,8 @@
                         <div class="row">
                             <!-- Tarjeta Verde: Al Día -->
                             <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 mb-3">
-                                <div class="card border-left-success shadow-sm h-100 cursor-pointer" 
-                                     id="cardVerde" 
+                                <div class="card border-left-success shadow-sm h-100 cursor-pointer"
+                                     id="cardVerde"
                                      data-estado="verde"
                                      style="border-left: 4px solid #28a745 !important; cursor: pointer; transition: all 0.3s;">
                                     <div class="card-body">
@@ -209,8 +144,8 @@
 
                             <!-- Tarjeta Amarilla: En Mora -->
                             <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 mb-3">
-                                <div class="card border-left-warning shadow-sm h-100 cursor-pointer" 
-                                     id="cardAmarilla" 
+                                <div class="card border-left-warning shadow-sm h-100 cursor-pointer"
+                                     id="cardAmarilla"
                                      data-estado="amarillo"
                                      style="border-left: 4px solid #ffc107 !important; cursor: pointer; transition: all 0.3s;">
                                     <div class="card-body">
@@ -230,8 +165,8 @@
 
                             <!-- Tarjeta Roja: Crítico -->
                             <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 mb-3">
-                                <div class="card border-left-danger shadow-sm h-100 cursor-pointer" 
-                                     id="cardRoja" 
+                                <div class="card border-left-danger shadow-sm h-100 cursor-pointer"
+                                     id="cardRoja"
                                      data-estado="rojo"
                                      style="border-left: 4px solid #dc3545 !important; cursor: pointer; transition: all 0.3s;">
                                     <div class="card-body">
@@ -244,12 +179,12 @@
                                                 <h2 class="mb-0 text-dark">{{ $semaforo_morosidad['rojo']['cantidad'] }}</h2>
                                                 <small class="text-muted">{{ $semaforo_morosidad['rojo']['porcentaje'] }}% del total</small>
                                                 <div class="mt-2">
-                                                    <a href="{{ route('propietarios') }}?estado=critico" 
+                                                    <a href="{{ route('propietarios') }}?estado=critico"
                                                        class="btn btn-danger btn-sm">
                                                         <i class="fa fa-list mr-1"></i> Ver Lista de Cobranza
                                                     </a>
                                                     @if($semaforo_morosidad['rojo']['cantidad'] > 0)
-                                                    <a href="{{ route('notificacion.masiva.criticos') }}" 
+                                                    <a href="{{ route('notificacion.masiva.criticos') }}"
                                                        class="btn btn-outline-danger btn-sm ml-1">
                                                         <i class="fa fa-bell mr-1"></i> Notificar Masivo
                                                     </a>
