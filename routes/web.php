@@ -146,7 +146,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/documentos-importantes', [DocumentosImportantesController::class, 'index'])->name('documentos-importantes.index');
     Route::post('/documentos-importantes', [DocumentosImportantesController::class, 'store'])->name('documentos-importantes.store');
     Route::delete('/documentos-importantes/{id}', [DocumentosImportantesController::class, 'destroy'])->name('documentos-importantes.destroy');
-    Route::get('/documentos-importantes/{id}/ver', [DocumentosImportantesController::class, 'ver'])->name('documentos-importantes.ver');
+    Route::get('/documentos-importantes/{id}/ver/{archivoId?}', [DocumentosImportantesController::class, 'ver'])->name('documentos-importantes.ver');
 
     Route::get('/intbancario', [InteresBancarioController::class, 'intbancario_index'])->name('intbancario');
     Route::get('/intbancario/get', [InteresBancarioController::class, 'getIntbancarios'])->name('intbancario_get');

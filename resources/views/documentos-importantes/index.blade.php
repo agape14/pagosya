@@ -80,10 +80,79 @@
         color: #cbd5e1;
         margin-bottom: 1rem;
     }
+    #modalPdf .modal-header {
+        display: flex;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+    #modalPdf .modal-header .modal-title {
+        flex: 1;
+        min-width: 0;
+        margin-right: 1rem;
+        padding-right: 0;
+    }
+    #modalPdf .modal-header .modal-header-actions {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        gap: 0.5rem;
+        margin-left: auto;
+    }
+    #modalPdf .modal-header .close {
+        position: static;
+        float: none;
+        margin: 0;
+        padding: 0.25rem 0.5rem;
+        opacity: 1;
+        line-height: 1;
+    }
     #modalPdf .modal-dialog { max-width: 90%; height: 90vh; }
     #modalPdf .modal-content { height: 100%; }
-    #modalPdf .modal-body { padding: 0; height: calc(100% - 120px); overflow: hidden; }
+    #modalPdf .modal-body { padding: 0; height: calc(100% - 120px); overflow: hidden; display: flex; flex-direction: column; }
+    #modalPdf .pdf-tabs { flex-shrink: 0; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0.5rem 1rem 0; overflow-x: auto; white-space: nowrap; }
+    #modalPdf .pdf-tabs .nav-link { border-radius: 8px 8px 0 0; color: #475569; font-size: 0.85rem; padding: 0.5rem 1rem; margin-right: 0.25rem; }
+    #modalPdf .pdf-tabs .nav-link.active { background: #fff; color: #3730a3; font-weight: 600; border-color: #e2e8f0 #e2e8f0 #fff; }
+    #modalPdf .pdf-viewer-wrap { flex: 1; min-height: 0; position: relative; }
     #modalPdf iframe { width: 100%; height: 100%; border: none; }
+    #modalPdf.modal-fullscreen .modal-dialog {
+        max-width: 100%;
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+    }
+    #modalPdf.modal-fullscreen .modal-content { height: 100vh; border-radius: 0; }
+    #modalPdf.modal-fullscreen .modal-body { height: calc(100vh - 120px); }
+    .pdf-dropzone {
+        border: 2px dashed #c7d2fe;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 2rem 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .pdf-dropzone:hover,
+    .pdf-dropzone.dragover {
+        border-color: #6366f1;
+        background: #eef2ff;
+    }
+    .pdf-dropzone .dropzone-icon { font-size: 2.5rem; color: #6366f1; margin-bottom: 0.75rem; }
+    .pdf-dropzone .dropzone-text { color: #475569; margin-bottom: 0.25rem; }
+    .pdf-dropzone .dropzone-hint { color: #94a3b8; font-size: 0.85rem; }
+    .pdf-file-list { margin-top: 1rem; }
+    .pdf-file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 0.75rem;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    .pdf-file-item .file-name { color: #334155; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85%; }
+    .pdf-file-item .btn-remove-file { padding: 0.15rem 0.5rem; font-size: 0.8rem; }
 </style>
 
 <div class="container-fluid">
@@ -144,15 +213,19 @@
                     <p class="doc-descripcion text-muted font-italic">Sin descripción</p>
                     @endif
                     <div class="doc-acciones">
-                        @if($esAdmin)
-                        <a href="{{ route('documentos-importantes.ver', $doc->id) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <button type="button"
+                            class="btn btn-outline-primary btn-sm btn-ver-pdf"
+                            data-id="{{ $doc->id }}"
+                            data-titulo="{{ $doc->titulo }}"
+                            data-archivos="{{ ($doc->archivos->isNotEmpty()
+                                ? $doc->archivos->map(function ($a) { return ['id' => $a->id, 'nombre' => $a->nombre_archivo]; })
+                                : collect([['id' => null, 'nombre' => basename($doc->ruta_pdf ?: 'documento.pdf')]])
+                            )->values()->toJson() }}">
                             <i class="fa fa-eye mr-1"></i> Ver PDF
-                        </a>
-                        @else
-                        <a href="{{ route('documentos-importantes.ver', $doc->id) }}" class="btn btn-outline-primary btn-sm btn-ver-pdf" data-id="{{ $doc->id }}" data-titulo="{{ $doc->titulo }}">
-                            <i class="fa fa-eye mr-1"></i> Ver PDF
-                        </a>
-                        @endif
+                            @if($doc->archivos->count() > 1)
+                            <span class="badge badge-light ml-1">{{ $doc->archivos->count() }}</span>
+                            @endif
+                        </button>
                         @if($esAdmin)
                         <form action="{{ route('documentos-importantes.destroy', $doc->id) }}" method="POST" class="d-inline form-eliminar-doc">
                             @csrf
@@ -207,12 +280,15 @@
                         <label class="font-weight-bold">Tag (opcional)</label>
                         <input type="text" name="tag" class="form-control" maxlength="100" placeholder="Ej: Reglamento, Actas, Contratos (para ordenar/filtrar)">
                     </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold">Archivo PDF <span class="text-danger">*</span></label>
-                        <div class="custom-file">
-                            <input type="file" name="archivo_pdf" class="custom-file-input" id="archivoPdf" accept=".pdf" required>
-                            <label class="custom-file-label" for="archivoPdf">Seleccionar PDF (máx. 15 MB)</label>
+                    <div class="form-group mb-0">
+                        <label class="font-weight-bold">Archivo(s) PDF <span class="text-danger">*</span></label>
+                        <div class="pdf-dropzone" id="pdfDropzone">
+                            <div class="dropzone-icon"><i class="fa fa-cloud-upload"></i></div>
+                            <div class="dropzone-text font-weight-bold">Arrastre sus PDF aquí o haga clic para seleccionar</div>
+                            <div class="dropzone-hint">Puede cargar varios archivos PDF (máx. 15 MB c/u)</div>
+                            <input type="file" name="archivo_pdf[]" id="archivoPdf" accept=".pdf,application/pdf" multiple class="d-none" required>
                         </div>
+                        <div class="pdf-file-list" id="pdfFileList"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -225,20 +301,28 @@
 </div>
 @endif
 
-{{-- Modal: Ver PDF (para propietarios y opcional para admin) --}}
+{{-- Modal: Ver PDF --}}
 <div class="modal fade" id="modalPdf" tabindex="-1" role="dialog" aria-labelledby="modalPdfTitle" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width: 95%; height: 90vh;">
         <div class="modal-content" style="height: 90vh;">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title text-white" id="modalPdfTitle"><i class="fa fa-file-pdf-o mr-2"></i> PDF</h5>
-                <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+                <div class="modal-header-actions">
+
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
             </div>
             <div class="modal-body p-0" style="height: calc(90vh - 120px);">
-                <iframe id="iframePdf" src="" style="width:100%; height:100%; border:none;"></iframe>
+                <ul class="nav nav-tabs pdf-tabs d-none" id="pdfTabs" role="tablist"></ul>
+                <div class="pdf-viewer-wrap">
+                    <iframe id="iframePdf" src="" title="Visor PDF"></iframe>
+                </div>
             </div>
             <div class="modal-footer">
                 <a id="linkDescargarPdf" href="" target="_blank" class="btn btn-outline-primary btn-sm">
-                    <i class="fa fa-download mr-1"></i> Abrir en nueva pestaña
+                    <i class="fa fa-external-link mr-1"></i> Abrir en nueva pestaña
                 </a>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
             </div>
@@ -250,11 +334,109 @@
 @section('scripts')
 <script>
 $(function() {
-    // Nombre del archivo en input file
-    $('#archivoPdf').on('change', function() {
-        var name = $(this).val().split('\\').pop();
-        $(this).next('.custom-file-label').text(name || 'Seleccionar PDF (máx. 15 MB)');
-    });
+    var baseUrl = '{{ url("documentos-importantes") }}';
+    var selectedFiles = [];
+    var pdfInput = document.getElementById('archivoPdf');
+
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    function syncFileInput() {
+        if (!pdfInput) return;
+        var dt = new DataTransfer();
+        selectedFiles.forEach(function(file) { dt.items.add(file); });
+        pdfInput.files = dt.files;
+        pdfInput.required = selectedFiles.length === 0;
+    }
+
+    function renderFileList() {
+        var $list = $('#pdfFileList');
+        $list.empty();
+        if (!selectedFiles.length) return;
+
+        selectedFiles.forEach(function(file, index) {
+            var $item = $('<div class="pdf-file-item"></div>');
+            $item.append(
+                '<span class="file-name"><i class="fa fa-file-pdf-o text-danger mr-2"></i>' +
+                $('<span>').text(file.name).html() + ' <small class="text-muted">(' + formatFileSize(file.size) + ')</small></span>'
+            );
+            $item.append(
+                '<button type="button" class="btn btn-outline-danger btn-sm btn-remove-file" data-index="' + index + '">' +
+                '<i class="fa fa-times"></i></button>'
+            );
+            $list.append($item);
+        });
+    }
+
+    function addPdfFiles(files) {
+        var maxSize = 15 * 1024 * 1024;
+        Array.from(files).forEach(function(file) {
+            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                return;
+            }
+            if (file.size > maxSize) {
+                alert('El archivo "' + file.name + '" supera el límite de 15 MB.');
+                return;
+            }
+            var exists = selectedFiles.some(function(f) {
+                return f.name === file.name && f.size === file.size;
+            });
+            if (!exists) {
+                selectedFiles.push(file);
+            }
+        });
+        syncFileInput();
+        renderFileList();
+    }
+
+    if (pdfInput) {
+        var $dropzone = $('#pdfDropzone');
+
+        $dropzone.on('click', function(e) {
+            if (!$(e.target).closest('.btn-remove-file').length) {
+                pdfInput.click();
+            }
+        });
+
+        pdfInput.addEventListener('change', function() {
+            addPdfFiles(this.files);
+        });
+
+        $dropzone.on('dragover dragenter', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).addClass('dragover');
+        });
+
+        $dropzone.on('dragleave dragend drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).removeClass('dragover');
+        });
+
+        $dropzone.on('drop', function(e) {
+            var files = e.originalEvent.dataTransfer.files;
+            addPdfFiles(files);
+        });
+
+        $('#pdfFileList').on('click', '.btn-remove-file', function(e) {
+            e.stopPropagation();
+            var index = $(this).data('index');
+            selectedFiles.splice(index, 1);
+            syncFileInput();
+            renderFileList();
+        });
+
+        $('#modalCargarDocumento').on('hidden.bs.modal', function() {
+            selectedFiles = [];
+            syncFileInput();
+            renderFileList();
+            $(this).find('form')[0].reset();
+        });
+    }
 
     // Filtro por tag
     $('.filtro-tag').on('click', function() {
@@ -267,20 +449,86 @@ $(function() {
         });
     });
 
-    // Propietarios: abrir PDF en modal
-    $('.btn-ver-pdf').on('click', function(e) {
-        e.preventDefault();
-        var id = $(this).data('id');
-        var titulo = $(this).data('titulo');
-        var url = '{{ url("documentos-importantes") }}/' + id + '/ver';
-        $('#modalPdfTitle').html('<i class="fa fa-file-pdf-o mr-2"></i> ' + titulo);
+    function buildPdfUrl(docId, archivoId) {
+        var url = baseUrl + '/' + docId + '/ver';
+        if (archivoId) {
+            url += '/' + archivoId;
+        }
+        return url;
+    }
+
+    function truncateName(name, max) {
+        if (name.length <= max) return name;
+        return name.substring(0, max - 3) + '...';
+    }
+
+    function loadPdfInModal(docId, archivoId) {
+        var url = buildPdfUrl(docId, archivoId);
         $('#iframePdf').attr('src', url);
         $('#linkDescargarPdf').attr('href', url);
+    }
+
+    // Ver PDF en modal con tabs
+    $('.btn-ver-pdf').on('click', function() {
+        var id = $(this).data('id');
+        var titulo = $(this).data('titulo');
+        var archivos = $(this).data('archivos') || [];
+
+        if (typeof archivos === 'string') {
+            try { archivos = JSON.parse(archivos); } catch (e) { archivos = []; }
+        }
+
+        $('#modalPdfTitle').html('<i class="fa fa-file-pdf-o mr-2"></i> ' + titulo);
+        $('#modalPdf').removeClass('modal-fullscreen');
+        $('#btnFullscreenPdf i').removeClass('fa-compress').addClass('fa-expand');
+
+        var $tabs = $('#pdfTabs');
+        $tabs.empty();
+
+        if (archivos.length > 1) {
+            $tabs.removeClass('d-none');
+            archivos.forEach(function(archivo, index) {
+                var tabId = 'pdf-tab-' + archivo.id;
+                var label = truncateName(archivo.nombre.replace(/\.pdf$/i, ''), 30);
+                var $li = $('<li class="nav-item" role="presentation"></li>');
+                var $link = $('<a class="nav-link" data-toggle="tab" href="#" role="tab"></a>')
+                    .text(label)
+                    .attr('data-archivo-id', archivo.id)
+                    .attr('data-doc-id', id);
+                if (index === 0) $link.addClass('active');
+                $li.append($link);
+                $tabs.append($li);
+            });
+            loadPdfInModal(id, archivos[0].id);
+        } else {
+            $tabs.addClass('d-none');
+            var archivoId = archivos.length ? archivos[0].id : null;
+            loadPdfInModal(id, archivoId);
+        }
+
         $('#modalPdf').modal('show');
+    });
+
+    $('#pdfTabs').on('click', '.nav-link', function(e) {
+        e.preventDefault();
+        $('#pdfTabs .nav-link').removeClass('active');
+        $(this).addClass('active');
+        loadPdfInModal($(this).data('doc-id'), $(this).data('archivo-id'));
+    });
+
+    $('#btnFullscreenPdf').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $modal = $('#modalPdf');
+        var isFullscreen = $modal.toggleClass('modal-fullscreen').hasClass('modal-fullscreen');
+        $(this).find('i').toggleClass('fa-expand', !isFullscreen).toggleClass('fa-compress', isFullscreen);
     });
 
     $('#modalPdf').on('hidden.bs.modal', function() {
         $('#iframePdf').attr('src', '');
+        $('#pdfTabs').empty().addClass('d-none');
+        $(this).removeClass('modal-fullscreen');
+        $('#btnFullscreenPdf i').removeClass('fa-compress').addClass('fa-expand');
     });
 });
 </script>

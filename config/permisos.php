@@ -21,4 +21,5 @@ return [
     'reportes' => 18,
     'intbancario' => 19,
     'noticias' => 20,
+    'documentosimportantes' => 21,
 ];

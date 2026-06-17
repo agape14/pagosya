@@ -25,4 +25,10 @@ class DocumentoImportante extends Model
         'activo' => 'boolean',
         'orden' => 'integer',
     ];
+
+    public function archivos()
+    {
+        return $this->hasMany(DocumentoImportanteArchivo::class, 'documento_importante_id')
+            ->orderBy('orden');
+    }
 }

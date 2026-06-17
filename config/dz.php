@@ -195,6 +195,7 @@ return [
 						],
 				'permisos_index' => [
 					'vendor/bootstrap-select/dist/css/bootstrap-select.min.css',
+					'vendor/select2/css/select2.min.css',
 					'vendor/sweetalert2/dist/sweetalert2.min.css',
 									'vendor/datatables/css/jquery.dataTables.min.css',
 						],
@@ -681,6 +682,7 @@ return [
 					],
 			'permisos_index' => [
 				'vendor/bootstrap-select/dist/js/bootstrap-select.min.js',
+				'vendor/select2/js/select2.full.min.js',
 				'vendor/sweetalert2/dist/sweetalert2.min.js',
 				'vendor/datatables/js/jquery.dataTables.min.js',
 				'js/plugins-init/datatables.init.js',
