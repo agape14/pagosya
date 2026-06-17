@@ -25,6 +25,7 @@
         'reportes' => 'Reportes',
         'noticias' => 'Noticias',
         'documentosimportantes' => 'Documentos importantes',
+        'finanzas' => 'Finanzas',
     ];
 @endphp
 
@@ -138,6 +139,34 @@
         color: #94a3b8;
         margin-bottom: 0.75rem;
     }
+    .permisos-base-card {
+        border: 1px solid #dbeafe;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%);
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .permisos-base-card h5 {
+        color: #1e40af;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+    }
+    .permiso-base-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.75rem;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+    .permiso-base-item.siempre-activo {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+    }
+    .permiso-base-item label { margin: 0; cursor: pointer; color: #334155; }
+    .permiso-base-item.siempre-activo label { cursor: default; color: #166534; }
 </style>
 
 <div class="container-fluid">
@@ -155,6 +184,39 @@
                     <h4 class="card-title mb-0">Gestión de permisos por usuario</h4>
                 </div>
                 <div class="card-body">
+                    <div class="permisos-base-card">
+                        <h5><i class="fa fa-users mr-2"></i>Accesos base para todos los usuarios (excepto administradores)</h5>
+                        <p class="text-muted mb-3">
+                            Asigne de forma masiva los módulos que deben tener todos los propietarios y usuarios no administradores
+                            ({{ $totalNoAdmin }} usuario(s) actualmente). Los administradores (perfil 1 y 2) quedan excluidos.
+                        </p>
+
+                        <div class="row">
+                            <div class="col-lg-7">
+                                <div class="permiso-base-item siempre-activo">
+                                    <i class="fa fa-check-circle text-success"></i>
+                                    <label><strong>Estado de cuenta</strong> <small class="text-muted">(/panel — siempre visible)</small></label>
+                                </div>
+                                <div class="permiso-base-item siempre-activo">
+                                    <i class="fa fa-check-circle text-success"></i>
+                                    <label><strong>Mi cuenta</strong> <small class="text-muted">(/cuenta — siempre visible)</small></label>
+                                </div>
+                                @foreach($permisosBase as $clave => $etiqueta)
+                                <div class="permiso-base-item">
+                                    <input type="checkbox" class="permiso-base-check" id="base_{{ $clave }}" value="{{ $clave }}" checked>
+                                    <label for="base_{{ $clave }}">{{ $etiqueta }}</label>
+                                </div>
+                                @endforeach
+                            </div>
+                            <div class="col-lg-5 d-flex align-items-end">
+                                <button type="button" id="btn-asignar-base-todos" class="btn btn-info btn-block">
+                                    <i class="fa fa-user-plus mr-1"></i>
+                                    Asignar seleccionados a todos (excepto administradores)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="permisos-toolbar">
                         <div class="row align-items-end">
                             <div class="col-lg-6 col-md-8 mb-3 mb-md-0">
@@ -323,6 +385,51 @@ $(document).ready(function() {
             error: function(xhr, status, error) {
                 swal('Error!', 'Error al guardar permisos: ' + error, 'error');
             }
+        });
+    });
+
+    $('#btn-asignar-base-todos').on('click', function() {
+        var permisosBase = [];
+        $('.permiso-base-check:checked').each(function() {
+            permisosBase.push($(this).val());
+        });
+
+        if (!permisosBase.length) {
+            swal('Atención!', 'Seleccione al menos un permiso para asignar.', 'warning');
+            return;
+        }
+
+        swal({
+            title: '¿Confirmar asignación masiva?',
+            text: 'Se agregarán los permisos seleccionados a todos los usuarios que no son administradores (perfil > 2). Los permisos existentes no se eliminarán.',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#6418C3',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, asignar',
+            cancelButtonText: 'Cancelar'
+        }).then(function(result) {
+            if (!result.value) {
+                return;
+            }
+
+            $.ajax({
+                url: '{{ route('permisos.asignar-base') }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    permisos_base: permisosBase
+                },
+                success: function(response) {
+                    swal('Listo!', response.success, 'success');
+                },
+                error: function(xhr) {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.error)
+                        ? xhr.responseJSON.error
+                        : 'No se pudo completar la asignación masiva.';
+                    swal('Error!', msg, 'error');
+                }
+            });
         });
     });
 

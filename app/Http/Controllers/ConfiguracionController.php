@@ -211,7 +211,14 @@ class ConfiguracionController extends Controller
         $permisos = Permiso::with('hijos')->whereNull('parent_id')->get();
         //$permisos = Permiso::all();
         $usuarios = Usuario::all();
-        return view('configuracion.permisos', compact('permisos', 'usuarios','page_title', 'page_description','action'));
+        $permisosBase = config('permisos.permisos_base_usuario', []);
+        $perfilAdminMax = config('permisos.perfil_admin_max', 2);
+        $totalNoAdmin = Usuario::where('id_perfil', '>', $perfilAdminMax)->count();
+
+        return view('configuracion.permisos', compact(
+            'permisos', 'usuarios', 'permisosBase', 'totalNoAdmin',
+            'page_title', 'page_description', 'action'
+        ));
     }
     public function obtenerPermisosUsuario(Usuario $usuario) {
         return response()->json(['permisos' => $usuario->permisos()->pluck('id')]);
@@ -234,6 +241,60 @@ class ConfiguracionController extends Controller
         }
         return response()->json(['success' => 'Permisos agregado correctamente.']);
 
+    }
+
+    public function asignarPermisosBaseMasivo(Request $request)
+    {
+        if (Auth::user()->id_perfil > config('permisos.perfil_admin_max', 2)) {
+            abort(403, 'No autorizado.');
+        }
+
+        $request->validate([
+            'permisos_base' => 'required|array|min:1',
+            'permisos_base.*' => 'string',
+        ]);
+
+        $permisosPermitidos = array_keys(config('permisos.permisos_base_usuario', []));
+        $permisosIds = [];
+
+        foreach ($request->input('permisos_base', []) as $clave) {
+            if (!in_array($clave, $permisosPermitidos, true)) {
+                continue;
+            }
+            $id = config('permisos.' . $clave);
+            if ($id) {
+                $permisosIds[] = (int) $id;
+            }
+        }
+
+        if (empty($permisosIds)) {
+            return response()->json(['error' => 'Seleccione al menos un permiso válido.'], 422);
+        }
+
+        $perfilAdminMax = config('permisos.perfil_admin_max', 2);
+        $usuarios = Usuario::where('id_perfil', '>', $perfilAdminMax)->get();
+        $asignaciones = 0;
+
+        foreach ($usuarios as $usuario) {
+            foreach ($permisosIds as $permisoId) {
+                $creado = PermisoUsuario::firstOrCreate([
+                    'id_usuario' => $usuario->id,
+                    'id_permiso' => $permisoId,
+                ]);
+                if ($creado->wasRecentlyCreated) {
+                    $asignaciones++;
+                }
+            }
+        }
+
+        $mensaje = 'Permisos base asignados a ' . $usuarios->count() . ' usuario(s) no administradores.';
+        if ($asignaciones === 0) {
+            $mensaje .= ' Todos ya tenían los permisos seleccionados.';
+        } else {
+            $mensaje .= ' Se agregaron ' . $asignaciones . ' permiso(s) nuevo(s).';
+        }
+
+        return response()->json(['success' => $mensaje]);
     }
 
     public function habilitaPopup(Request $request)

@@ -75,6 +75,7 @@ class TorresPermisosSeeder extends Seeder
             ['nombre_permiso' => 'intbancario', 'parent_id' => 2],
             ['nombre_permiso' => 'noticias', 'parent_id' => null],
             ['nombre_permiso' => 'documentosimportantes', 'parent_id' => null],
+            ['nombre_permiso' => 'finanzas', 'parent_id' => null],
         ]);
 
         // 3. Insertar datos en la tabla 'permisos_usuarios'

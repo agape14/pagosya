@@ -22,4 +22,18 @@ return [
     'intbancario' => 19,
     'noticias' => 20,
     'documentosimportantes' => 21,
+    'finanzas' => 22,
+
+    /*
+    | Permisos base asignables masivamente a propietarios/usuarios no administradores.
+    | Estado de cuenta (/panel) y Mi cuenta (/cuenta) están siempre disponibles sin permiso.
+    */
+    'permisos_base_usuario' => [
+        'finanzas' => 'Finanzas',
+        'noticias' => 'Noticias',
+        'documentosimportantes' => 'Documentos importantes',
+    ],
+
+    // id_perfil <= este valor se considera administrador (excluido de asignación masiva)
+    'perfil_admin_max' => 2,
 ];

@@ -94,18 +94,20 @@
                     </li>
                     @endif
 
-                    @if(Auth::user()->id_perfil <= 3)
+                    @if(in_array(config('permisos.finanzas'), session('permisos_usuario')))
                     <li><a href="{!! url('/finanzas'); !!}" class="ai-icon" aria-expanded="false">
                             <i class="flaticon-381-calculator"></i>
                             <span class="nav-text">Finanzas</span>
                         </a>
                     </li>
                     @endif
+                    @if(in_array(config('permisos.noticias'), session('permisos_usuario')))
                     <li><a href="{!! url('/noticias'); !!}" class="ai-icon" aria-expanded="false">
-                            <i class="flaticon-381-internet"></i> <!-- Placeholder icon -->
+                            <i class="flaticon-381-internet"></i>
                             <span class="nav-text">Noticias</span>
                         </a>
                     </li>
+                    @endif
                     @if(in_array(config('permisos.documentosimportantes'), session('permisos_usuario')))
                     <li><a href="{!! url('/documentos-importantes'); !!}" class="ai-icon" aria-expanded="false">
                             <i class="flaticon-381-notepad"></i>

@@ -250,6 +250,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/permisos', [ConfiguracionController::class, 'permisos_index'])->name('permisos');
     Route::get('/getpermisos/{usuario}', [ConfiguracionController::class, 'obtenerPermisosUsuario'])->name('getpermisosxuser');
     Route::post('/addpermisos', [ConfiguracionController::class, 'agregarPermiso'])->name('addpermisos');
+    Route::post('/permisos/asignar-base', [ConfiguracionController::class, 'asignarPermisosBaseMasivo'])->name('permisos.asignar-base');
     Route::put('/updusuario/{id}', [ConfiguracionController::class, 'update'])->name('updusuario');
     Route::post('/habilitapopup', [ConfiguracionController::class, 'habilitaPopup'])->name('habilita_popup');
     Route::post('/habilitanotifuser', [ConfiguracionController::class, 'habilitaNotifUser'])->name('habilitanotifuser');
